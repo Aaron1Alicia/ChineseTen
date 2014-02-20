@@ -1,21 +1,18 @@
 package org.chineseten.client;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
+//import java_cup.internal_error;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.bcel.generic.NEW;
-import org.chineseten.client.Card;
-import org.chineseten.client.ChineseTenState;
-import org.chineseten.client.Claim;
-import org.chineseten.client.Color;
-import org.chineseten.client.GameApi.SetTurn;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
 import org.chineseten.client.GameApi.EndGame;
 import org.chineseten.client.GameApi.Operation;
 import org.chineseten.client.GameApi.Set;
+import org.chineseten.client.GameApi.SetTurn;
 import org.chineseten.client.GameApi.SetVisibility;
 import org.chineseten.client.GameApi.Shuffle;
 import org.chineseten.client.GameApi.VerifyMove;
@@ -26,30 +23,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-
-
-//import java_cup.internal_error;
-import java.util.Arrays;
-import java.util.Map;
-
-import java_cup.internal_error;
-
 public class ChineseTenLgoic {
 
     private static final String C = "C"; // Card key (C0 .. C51)
-    private final int wId = 41;
-    private final int bId = 42;
+    //private final int wId = 41;
+    //private final int bId = 42;
     private final int stage0 = 0;
     private final int stage1 = 1;
     private final int stage2 = 2;
     private final int stage3 = 3;
-    private final String reset = "reset";
+    //private final String reset = "reset";
     private final String match = "match";
     private final String special = "special";
     //private final String noMatch = "nomatch";
     private final String flip = "flip";
     //private final String noFlip = "noflip";
-    private final String playerId = "playerId";
+    //private final String playerId = "playerId";
     private static final String STAGE = "stage"; // 0 for init, 4 for end, 1,2,3 for three stages
     private static final String W = "W"; // White hand
     private static final String B = "B"; // Black hand
@@ -94,25 +83,28 @@ public class ChineseTenLgoic {
         }
         ChineseTenState lastState = gameApiStateToChineseTenState(lastApiState,
                 Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
+        
 //         There are 3 types of moves:
 //         1) stage1: claim one card from W/B and one card from D or do nothing
 //         2) stage2: flip one card from M to D if there is still cards in M
 //         3) stage3: collect two cards within D if rule allows 
+        
         if (lastMove.contains(new Set(STAGE, stage1))) {
             //System.out.println("Enter stage1");
-            check(lastState.getStage() == 3 || lastState.getStage() == 0); 
-            
+            // Check if move is legal in stage1
+            check(lastState.getStage() == 3 || lastState.getStage() == 0);        
             if (lastMove.contains(new Set(CLAIM, special))) {
                 return doClaimMoveOnSpecialCase(lastState, lastMove, playerIds);
-            }
-                
+            }              
             return doClaimMoveOnStage1(lastState, lastMove, playerIds);      
         } else if (lastMove.contains(new Set(STAGE, stage2))) {
             //System.out.println("Enter stage2");
+            // Check if move is legal in stage2
             check(lastState.getStage() == 1, lastState.getStage());
             return doClaimMoveOnStage2(lastState, lastMove, playerIds);   
         } else if (lastMove.contains(new Set(STAGE, stage3))) {
             //System.out.println("Enter stage3");
+            // Check if move is legal in stage3
             check(lastState.getStage() == 2, lastState.getStage());
             return doClaimMoveOnStage3(lastState, lastMove, playerIds);       
         } else {
@@ -183,11 +175,13 @@ public class ChineseTenLgoic {
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       
 
       // If Collect at stage1  then the format must be:
-      // 0) new SetTurn(playerIdOfB),
-      // 1) new Set(W, [...]),
-      // 2) new Set(M, [...]),
-      // 3) new Set(claim, ...)
-      // And for B it will be the opposite    
+//        new SetTurn(state.getPlayerId(turnOfColor)),
+//        new Set(STAGE, stage1),
+//        new Set(CLAIM, match),
+//        new Set(turnOfColor.name(), lastMoveWorB),
+//        new Set(turnOfColor.name() + "C", newWCOrBC),
+//        new Set(D, lastMoveD),
+//        new SetVisibility(C + diffWorB.get(0)));  
 
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor)),
@@ -202,6 +196,7 @@ public class ChineseTenLgoic {
           
          // System.out.println(newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size());
          // System.out.println("endGme!");
+         
           List<Operation> endGame = Lists.newArrayList();
           endGame.add(new SetTurn(state.getPlayerId(turnOfColor)));
           endGame.add(new Set(STAGE, stage1));
@@ -211,6 +206,7 @@ public class ChineseTenLgoic {
           endGame.add(new Set(D, lastMoveD));
           endGame.add(new SetVisibility(C + diffWorB.get(0)));
           
+          // If it is time to end the game, we need choose the winner and shuffle the cards
           endGame.add(new Shuffle(getCardsInRange(0, 51)));
           if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
               endGame.add(new EndGame(state.getPlayerId(turnOfColor)));
@@ -244,12 +240,13 @@ public class ChineseTenLgoic {
         // Move M to D
         List<Integer> newD = concat(diffM, lastD);       
 
-      // If Collect at stage1  then the format must be:
-      // 0) new SetTurn(playerIdOfB),
-      // 1) new Set(W, [...]),
-      // 2) new Set(M, [...]),
-      // 3) new Set(claim, ...)
-      // And for B it will be the opposite    
+      // If flip cards at stage2  then the format must be:
+//        new SetTurn(state.getPlayerId(turnOfColor)),
+//        new Set(STAGE, stage2),
+//        new Set(CLAIM, flip),
+//        new Set(D, newD),
+//        new Set(M, lastMoveM),
+//        new SetVisibility(C + flipNumber)); 
 
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor)),
@@ -282,12 +279,12 @@ public class ChineseTenLgoic {
         
         List<Integer> newWCOrBC = concat(diffD, state.getWCOrBC(turnOfColor));       
 
-      // If Collect at stage1  then the format must be:
-      // 0) new SetTurn(playerIdOfB),
-      // 1) new Set(W, [...]),
-      // 2) new Set(M, [...]),
-      // 3) new Set(claim, ...)
-      // And for B it will be the opposite    
+      // If Collect at stage3  then the format must be:
+//        new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
+//        new Set(STAGE, stage3),
+//        new Set(CLAIM, match),
+//        new Set(turnOfColor.name() + "C", newWCOrBC),
+//        new Set(D, lastMoveD));
 
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
@@ -299,6 +296,7 @@ public class ChineseTenLgoic {
     }
     
     @SuppressWarnings("unchecked")
+    /** Return the operations on special case.*/
     List<Operation> doClaimMoveOnSpecialCase(ChineseTenState state, List<Operation> lastMove, 
         List<Integer> playerIds) {
         
@@ -324,12 +322,14 @@ public class ChineseTenLgoic {
         List<Integer> newCollection = concat(diffWorB, diffD);
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       
 
-      // If Collect at stage1  then the format must be:
-      // 0) new SetTurn(playerIdOfB),
-      // 1) new Set(W, [...]),
-      // 2) new Set(M, [...]),
-      // 3) new Set(claim, ...)
-      // And for B it will be the opposite    
+      // If the requirement for special case is satisfied,  then the format must be:
+//        new SetTurn(state.getPlayerId(turnOfColor)),
+//        new Set(STAGE, stage1),
+//        new Set(CLAIM, special),
+//        new Set(turnOfColor.name(), lastMoveWorB),
+//        new Set(turnOfColor.name() + "C", newWCOrBC),
+//        new Set(D, lastMoveD),
+//        new SetVisibility(C + diffWorB.get(0)));   
 
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor)),
@@ -367,6 +367,7 @@ public class ChineseTenLgoic {
         return rankString + suitString;
     }
 
+    /** Get Initial move at the beginning of the game.*/
     List<Operation> getInitialMove(int whitePlayerId, int blackPlayerId) {
         List<Operation> operations = Lists.newArrayList();
         // The order of operations: turn, isCheater, W, B, M, claim, C0...C51
@@ -466,6 +467,5 @@ public class ChineseTenLgoic {
             }
         return true;
     }
-
 }
 

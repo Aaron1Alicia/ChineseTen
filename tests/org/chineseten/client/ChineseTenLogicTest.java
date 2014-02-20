@@ -383,7 +383,7 @@ public class ChineseTenLogicTest {
     
     // test for endGame
     @Test
-    public void testEndGame1() {
+    public void testEndGame() {
       Map<String, Object> state = ImmutableMap.<String, Object>builder()
           .put(TURN, W)
           .put(STAGE, stage3)
@@ -412,33 +412,7 @@ public class ChineseTenLogicTest {
 
       assertMoveOk(move(wId, state, operations));
     }
-    
-    //@Test
-    public void testEndGame2() {
-        Map<String, Object> state = ImmutableMap.<String, Object>builder()
-                .put(TURN, W)
-                .put(STAGE, stage0)
-                .put(W, getIndicesInRange(0, 11))
-                .put(B, getIndicesInRange(12, 23))
-                .put(WC, ImmutableList.<Integer>of())
-                .put(BC, ImmutableList.<Integer>of())
-                .put(D, getIndicesInRange(48, 51))
-                .put(M, getIndicesInRange(24, 47))
-                .put("C48", "Ks")
-                .put("C49", "Kh")
-                .put("C50", "Kd")
-                .put("C11", "Kc")
-                .build();
-      // The order of operations: turn, isCheater, W, B, M, claim, C0...C51
-      List<Operation> operations = ImmutableList.<Operation>of(
-          //new Set(key, value)
-          new Set(CLAIM, reset),
-          new Shuffle(getCardsInRange(0, 51)),
-          new EndGame(bId));
-
-      assertMoveOk(move(wId, state, operations));
-    }
-    
+      
     <T> List<T> concat(List<T> a, List<T> b) {
         return Lists.newArrayList(Iterables.concat(a, b));
     }
