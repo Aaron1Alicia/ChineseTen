@@ -69,6 +69,14 @@ public class Card extends Equality {
           : rankString.equals("A") ? 14 : Integer.valueOf(rankString);
       return VALUES[rankIndex - 2];
     }
+    
+    public int getNumberfromRank() {
+        int rank = this.ordinal() + 2;
+        if (rank == 14) {
+            rank = 1; 
+        }                           
+        return rank;      
+    }
 
     public String getFirstLetter() {
       int rank = this.ordinal() + 2;

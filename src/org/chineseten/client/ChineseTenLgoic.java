@@ -1,78 +1,354 @@
 package org.chineseten.client;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-//import java_cup.internal_error;
-
+import org.apache.bcel.generic.NEW;
+import org.chineseten.client.Card;
+import org.chineseten.client.ChineseTenState;
+import org.chineseten.client.Claim;
+import org.chineseten.client.Color;
+import org.chineseten.client.GameApi.SetTurn;
+import org.chineseten.client.Card.Rank;
+import org.chineseten.client.Card.Suit;
+//import org.cheat.client.GameApi.Delete;
 import org.chineseten.client.GameApi.Operation;
 import org.chineseten.client.GameApi.Set;
 import org.chineseten.client.GameApi.SetVisibility;
 import org.chineseten.client.GameApi.Shuffle;
-import org.chineseten.client.Card.Rank;
-import org.chineseten.client.Card.Suit;
 import org.chineseten.client.GameApi.VerifyMove;
 import org.chineseten.client.GameApi.VerifyMoveDone;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+
+//import java_cup.internal_error;
+import java.util.Arrays;
+import java.util.Map;
+
+import java_cup.internal_error;
+
 public class ChineseTenLgoic {
-    
-  private static final String C = "C"; // Card key (C0 .. C51)
-  private final int wId = 41;
-  private final int bId = 42;
-  private final int stage0 = 0;
-  private final int stage1 = 1;
-  private final int stage2 = 2;
-  private final int stage3 = 3;
-  //private final int Stage
-  private final String playerId = "playerId";
-  private static final String TURN = "turn"; // turn of which player (either W or B)
-  private static final String STAGE = "stage"; // 0 for init, 4 for end, 1,2,3 for three stages
-  private static final String W = "W"; // White hand
-  private static final String B = "B"; // Black hand
-  private static final String M = "M"; // Middle pile
-  private static final String WC = "WC"; // Cards collected by W
-  private static final String BC = "BC"; // Cards collected by B
-  private static final String D = "D"; //
-    
-    
-  public VerifyMoveDone verify(VerifyMove verifyMove) {
-  // TODO: I will implement this method in HW2
-   return new VerifyMoveDone();
-}
-  
-  List<Integer> getIndicesInRange(int fromInclusive, int toInclusive) {
-      List<Integer> keys = Lists.newArrayList();
-      for (int i = fromInclusive; i <= toInclusive; i++) {
-        keys.add(i);
+
+    private static final String C = "C"; // Card key (C0 .. C51)
+    private final int wId = 41;
+    private final int bId = 42;
+    private final int stage0 = 0;
+    private final int stage1 = 1;
+    private final int stage2 = 2;
+    private final int stage3 = 3;
+    private final String reset = "reset";
+    private final String match = "match";
+    private final String special = "special";
+    //private final String noMatch = "nomatch";
+    private final String flip = "flip";
+    //private final String noFlip = "noflip";
+    private final String playerId = "playerId";
+    private static final String TURN = "turn"; // turn of which player (either W or B)
+    private static final String STAGE = "stage"; // 0 for init, 4 for end, 1,2,3 for three stages
+    private static final String W = "W"; // White hand
+    private static final String B = "B"; // Black hand
+    private static final String M = "M"; // Middle pile
+    private static final String WC = "WC"; // Cards collected by W
+    private static final String BC = "BC"; // Cards collected by B
+    private static final String D = "D"; // Cards faced up around M
+    //private static final String C = "C"; // Card key (C1 .. C54)
+    private static final String CLAIM = "claim"; 
+
+    public VerifyMoveDone verify(VerifyMove verifyMove) {
+        try {
+            checkMoveIsLegal(verifyMove);
+            return new VerifyMoveDone();
+        } catch (Exception e) {
+            return new VerifyMoveDone(verifyMove.getLastMovePlayerId(),
+                    e.getMessage());
+        }
+    }
+
+    void checkMoveIsLegal(VerifyMove verifyMove) {
+      List<Operation> lastMove = verifyMove.getLastMove();
+      Map<String, Object> lastState = verifyMove.getLastState();
+      // Checking the operations are as expected.
+      List<Operation> expectedOperations = getExpectedOperations(
+          lastState, lastMove, verifyMove.getPlayerIds(), verifyMove.getLastMovePlayerId());
+      check(expectedOperations.equals(lastMove), expectedOperations, lastMove);
+      // We use SetTurn, so we don't need to check that the correct player did the move.
+      // However, we do need to check the first move is done by the white player (and then in the
+      // first MakeMove we'll send SetTurn which will guarantee the correct player send MakeMove).
+      if (lastState.isEmpty()) {
+        check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0));
+        }
       }
-      return keys;
+
+//    @SuppressWarnings("unchecked")
+    List<Operation> getExpectedOperations(Map<String, Object> lastApiState,
+            List<Operation> lastMove, List<Integer> playerIds,
+            int lastMovePlayerId) {
+        if (lastApiState.isEmpty()) {
+            return getInitialMove(playerIds.get(0), playerIds.get(1));
+        }
+        ChineseTenState lastState = gameApiStateToChineseTenState(lastApiState,
+                Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
+//         There are 3 types of moves:
+//         1) stage1: claim one card from W/B and one card from D or do nothing
+//         2) stage2: flip one card from M to D if there is still cards in M
+//         3) stage3: collect two cards within D if rule allows 
+        if (lastMove.contains(new Set(STAGE, stage1))) {
+            //System.out.println("Enter stage1");
+            check(lastState.getStage() == 3 || lastState.getStage() == 0); 
+            
+            if (lastMove.contains(new Set(CLAIM, special))) {
+                //check(lastState.getStage() == 0, lastState.getStage());
+                return doClaimMoveOnSpecialCase(lastState, lastMove, playerIds);
+            }
+                
+            return doClaimMoveOnStage1(lastState, lastMove, playerIds);      
+        } else if (lastMove.contains(new Set(STAGE, stage2))) {
+            //System.out.println("Enter stage2");
+            check(lastState.getStage() == 1, lastState.getStage());
+            return doClaimMoveOnStage2(lastState, lastMove, playerIds);   
+        } else if (lastMove.contains(new Set(STAGE, stage3))) {
+            System.out.println("Enter stage3");
+            check(lastState.getStage() == 2, lastState.getStage());
+            return doClaimMoveOnStage3(lastState, lastMove, playerIds);       
+        } else {
+            return getInitialMove(playerIds.get(0), playerIds.get(1));
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private ChineseTenState gameApiStateToChineseTenState(
+            Map<String, Object> gameApiState, Color turnOfColor,
+            List<Integer> playerIds) {
+        List<Optional<Card>> cards = Lists.newArrayList();
+        for (int i = 0; i < 52; i++) {
+            String cardString = (String) gameApiState.get(C + i);
+            Card card;
+            if (cardString == null) {
+              card = null;
+            } else {
+              Rank rank = Rank.fromFirstLetter(cardString.substring(0, 1));
+              Suit suit = Suit.fromFirstLetterLowerCase(cardString.substring(1));
+              card = new Card(suit, rank);
+            }
+            cards.add(Optional.fromNullable(card));
+          }
+        
+        int stage = (int) gameApiState.get(STAGE);
+        List<Integer> white = (List<Integer>) gameApiState.get(W);
+        List<Integer> black = (List<Integer>) gameApiState.get(B);
+        List<Integer> whiteCollect = (List<Integer>) gameApiState.get(WC);
+        List<Integer> blackCollect = (List<Integer>) gameApiState.get(BC);
+        List<Integer> deck = (List<Integer>) gameApiState.get(D);
+        List<Integer> middle = (List<Integer>) gameApiState.get(M);
+        
+        return new ChineseTenState(turnOfColor, stage, Optional.fromNullable(Claim
+                .fromClaimEntryInGameState((List<String>) gameApiState.get(CLAIM))), 
+                 ImmutableList.copyOf(white), ImmutableList.copyOf(black),
+                 ImmutableList.copyOf(whiteCollect), ImmutableList.copyOf(blackCollect),
+                 ImmutableList.copyOf(deck), ImmutableList.copyOf(middle),
+                 ImmutableList.copyOf(cards), ImmutableList.copyOf(playerIds));
+    }
+    
+    /** Returns the operations for stage1. */
+    @SuppressWarnings("unchecked")
+    List<Operation> doClaimMoveOnStage1(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {
+        
+        Color turnOfColor = state.getTurn();
+        
+        // Get the diff between last state W/B and last move W/B
+        List<Integer> lastWorB = state.getWhiteOrBlack(turnOfColor);      
+        Set setWorB = (Set) lastMove.get(3);
+        List<Integer> lastMoveWorB = (List<Integer>) setWorB.getValue();
+        List<Integer> diffWorB = subtract(lastWorB, lastMoveWorB);
+        check(diffWorB.size() == 1, lastWorB, lastMoveWorB, diffWorB);
+        
+        // Get the diff between last state D and last move D
+        List<Integer> lastD = state.getDeck();
+        Set setD = (Set) lastMove.get(5);
+        List<Integer> lastMoveD = (List<Integer>) setD.getValue();
+        List<Integer> diffD = subtract(lastD, lastMoveD);
+        check(diffD.size() == 1, lastD, lastMoveD, diffD);
+        
+        // Check whether sum is ten
+        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        
+        List<Integer> newCollection = concat(diffWorB, diffD);
+        List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       
+
+      // If Collect at stage1  then the format must be:
+      // 0) new SetTurn(playerIdOfB),
+      // 1) new Set(W, [...]),
+      // 2) new Set(M, [...]),
+      // 3) new Set(claim, ...)
+      // And for B it will be the opposite    
+
+      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+          new SetTurn(state.getPlayerId(turnOfColor)),
+          new Set(STAGE, stage1),
+          new Set(CLAIM, match),
+          new Set(turnOfColor.name(), lastMoveWorB),
+          new Set(turnOfColor.name() + "C", newWCOrBC),
+          new Set(D, lastMoveD),
+          new SetVisibility(C + diffWorB.get(0)));
+      return expectedOperations;
+    }
+    
+    /** Returns the operations for stage2. */
+    @SuppressWarnings("unchecked")
+    List<Operation> doClaimMoveOnStage2(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {
+        
+        Color turnOfColor = state.getTurn();
+        
+        // Get the diff between last state W/B and last move W/B
+        List<Integer> lastM = state.getMiddle();      
+        Set setM = (Set) lastMove.get(4);
+        List<Integer> lastMoveM = (List<Integer>) setM.getValue();
+        List<Integer> diffM = subtract(lastM, lastMoveM);
+        check(diffM.size() == 1, lastM, lastMoveM, diffM);
+        
+        int flipNumber = diffM.get(0);
+        
+        List<Integer> lastD = state.getDeck();
+        
+        // Move M to D
+        List<Integer> newD = concat(diffM, lastD);       
+
+      // If Collect at stage1  then the format must be:
+      // 0) new SetTurn(playerIdOfB),
+      // 1) new Set(W, [...]),
+      // 2) new Set(M, [...]),
+      // 3) new Set(claim, ...)
+      // And for B it will be the opposite    
+
+      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+          new SetTurn(state.getPlayerId(turnOfColor)),
+          new Set(STAGE, stage2),
+          new Set(CLAIM, flip),
+          new Set(D, newD),
+          new Set(M, lastMoveM),
+          new SetVisibility(C + flipNumber));
+      return expectedOperations;
+    }
+    
+    /** Returns the operations for stage3. */
+    @SuppressWarnings("unchecked")
+    List<Operation> doClaimMoveOnStage3(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {       
+        Color turnOfColor = state.getTurn();
+        
+        // Get the diff between last state D and last move D
+        List<Integer> lastD = state.getDeck();
+        Set setD = (Set) lastMove.get(4);
+        List<Integer> lastMoveD = (List<Integer>) setD.getValue();
+        List<Integer> diffD = subtract(lastD, lastMoveD);
+        check(diffD.size() == 2, lastD, lastMoveD, diffD);
+        
+        List<Integer> diffD1 = diffD.subList(0, 1);
+        List<Integer> diffD2 = diffD.subList(1, 2);
+               
+        // Check whether sum is ten
+        check(checkWhetherSumIsTen(state, diffD1, diffD2), diffD1, diffD2);
+        
+        List<Integer> newWCOrBC = concat(diffD, state.getWCOrBC(turnOfColor));       
+
+      // If Collect at stage1  then the format must be:
+      // 0) new SetTurn(playerIdOfB),
+      // 1) new Set(W, [...]),
+      // 2) new Set(M, [...]),
+      // 3) new Set(claim, ...)
+      // And for B it will be the opposite    
+
+      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+          new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
+          new Set(STAGE, stage3),
+          new Set(CLAIM, match),
+          new Set(turnOfColor.name() + "C", newWCOrBC),
+          new Set(D, lastMoveD));
+      return expectedOperations;
+    }
+    
+    @SuppressWarnings("unchecked")
+    List<Operation> doClaimMoveOnSpecialCase(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {
+        
+        Color turnOfColor = state.getTurn();
+        
+        // Get the diff between last state W/B and last move W/B
+        List<Integer> lastWorB = state.getWhiteOrBlack(turnOfColor);      
+        Set setWorB = (Set) lastMove.get(3);
+        List<Integer> lastMoveWorB = (List<Integer>) setWorB.getValue();
+        List<Integer> diffWorB = subtract(lastWorB, lastMoveWorB);
+        check(diffWorB.size() == 1, lastWorB, lastMoveWorB, diffWorB);
+        
+        // Get the diff between last state D and last move D
+        List<Integer> lastD = state.getDeck();
+        Set setD = (Set) lastMove.get(5);
+        List<Integer> lastMoveD = (List<Integer>) setD.getValue();
+        List<Integer> diffD = subtract(lastD, lastMoveD);
+        check(diffD.size() == 1, lastD, lastMoveD, diffD);
+        
+        // Check whether sum is ten
+        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        
+        List<Integer> newCollection = concat(diffWorB, diffD);
+        List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       
+
+      // If Collect at stage1  then the format must be:
+      // 0) new SetTurn(playerIdOfB),
+      // 1) new Set(W, [...]),
+      // 2) new Set(M, [...]),
+      // 3) new Set(claim, ...)
+      // And for B it will be the opposite    
+
+      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+          new SetTurn(state.getPlayerId(turnOfColor)),
+          new Set(STAGE, stage1),
+          new Set(CLAIM, match),
+          new Set(turnOfColor.name(), lastMoveWorB),
+          new Set(turnOfColor.name() + "C", newWCOrBC),
+          new Set(D, lastMoveD),
+          new SetVisibility(C + diffWorB.get(0)));
+      return expectedOperations;
+    }
+
+    List<Integer> getIndicesInRange(int fromInclusive, int toInclusive) {
+        List<Integer> keys = Lists.newArrayList();
+        for (int i = fromInclusive; i <= toInclusive; i++) {
+            keys.add(i);
+        }
+        return keys;
     }
 
     List<String> getCardsInRange(int fromInclusive, int toInclusive) {
-      List<String> keys = Lists.newArrayList();
-      for (int i = fromInclusive; i <= toInclusive; i++) {
-        keys.add(C + i);
-      }
-      return keys;
+        List<String> keys = Lists.newArrayList();
+        for (int i = fromInclusive; i <= toInclusive; i++) {
+            keys.add(C + i);
+        }
+        return keys;
     }
 
     String cardIdToString(int cardId) {
-      checkArgument(cardId >= 0 && cardId < 52);
-      int rank = (cardId / 4);
-      String rankString = Rank.values()[rank].getFirstLetter();
-      int suit = cardId % 4;
-      String suitString = Suit.values()[suit].getFirstLetterLowerCase();
-      return rankString + suitString;
+        checkArgument(cardId >= 0 && cardId < 52);
+        int rank = (cardId / 4);
+        String rankString = Rank.values()[rank].getFirstLetter();
+        int suit = cardId % 4;
+        String suitString = Suit.values()[suit].getFirstLetterLowerCase();
+        return rankString + suitString;
     }
-    
+
     List<Operation> getInitialMove(int whitePlayerId, int blackPlayerId) {
         List<Operation> operations = Lists.newArrayList();
         // The order of operations: turn, isCheater, W, B, M, claim, C0...C51
-        operations.add(new Set(TURN, W));
+        operations.add(new SetTurn(whitePlayerId));
         operations.add(new Set(STAGE, stage0));
         // set W and B hands, each with 12 cards at hand before start
         operations.add(new Set(W, getIndicesInRange(0, 11)));
@@ -81,31 +357,79 @@ public class ChineseTenLgoic {
         operations.add(new Set(WC, ImmutableList.of()));
         operations.add(new Set(BC, ImmutableList.of()));
         // D is the pile faced up for collect, has 4 cards before start
-        operations.add(new Set(D,getIndicesInRange(48, 51)));       
+        operations.add(new Set(D, getIndicesInRange(48, 51)));
         // middle pile is empty
         operations.add(new Set(M, getIndicesInRange(24, 47)));
         // sets all 52 cards: set(C0,2h), �, set(C51,Ac)
         for (int i = 0; i < 52; i++) {
-          operations.add(new Set(C + i, cardIdToString(i)));
+            operations.add(new Set(C + i, cardIdToString(i)));
         }
         // shuffle(C0,...,C51)
         operations.add(new Shuffle(getCardsInRange(0, 51)));
         // sets visibility
         for (int i = 0; i < 12; i++) {
-          operations.add(new SetVisibility(C + i, ImmutableList.of(whitePlayerId)));
+            operations.add(new SetVisibility(C + i, ImmutableList
+                    .of(whitePlayerId)));
         }
         for (int i = 12; i < 24; i++) {
-          operations.add(new SetVisibility(C + i, ImmutableList.of(blackPlayerId)));
+            operations.add(new SetVisibility(C + i, ImmutableList
+                    .of(blackPlayerId)));
         }
         for (int i = 24; i < 48; i++) {
-            operations.add(new SetVisibility(C + i, ImmutableList.<Integer>of()));
+            operations.add(new SetVisibility(C + i, ImmutableList
+                    .<Integer> of()));
         }
         for (int i = 48; i < 52; i++) {
             operations.add(new SetVisibility(C + i));
         }
-        
-        
+
         return operations;
-      }
-     
+    }
+
+    private void check(boolean val, Object... debugArguments) {
+        if (!val) {
+            throw new RuntimeException("We have a hacker! debugArguments="
+                    + Arrays.toString(debugArguments));
+        }
+    }
+    
+    <T> List<T> concat(List<T> a, List<T> b) {
+        return Lists.newArrayList(Iterables.concat(a, b));
+    }
+
+    <T> List<T> subtract(List<T> removeFrom, List<T> elementsToRemove) {
+        check(removeFrom.containsAll(elementsToRemove), removeFrom,
+                elementsToRemove);
+        List<T> result = Lists.newArrayList(removeFrom);
+        result.removeAll(elementsToRemove);
+        check(removeFrom.size() == result.size() + elementsToRemove.size());
+        return result;
+    }
+    
+    /** Check whether the sum of collected cards is ten or other cases that the rule allows*/
+    boolean checkWhetherSumIsTen(ChineseTenState state, List<Integer> a, List<Integer> b) {
+        check(a.size() == 1, a);
+        check(b.size() == 1, b);
+        //int aValue = a.get(0);
+        //int bValue = b.get(0);
+        
+        int aValue = state.getCards().get(a.get(0)).get().getRank().getNumberfromRank();
+        int bValue = state.getCards().get(b.get(0)).get().getRank().getNumberfromRank();
+        
+        if (aValue + bValue == 10) {
+            return true; 
+        } else if (aValue == 10 && bValue == 10) {
+            return true;
+        } else if (aValue == 11 && bValue == 11) {
+            return true;
+        } else if (aValue == 12 && bValue == 12) {
+            return true;
+        } else if (aValue == 13 && bValue == 13) {
+            return true;
+        } else {
+            return false;
+        }        
+    }
+
 }
+
