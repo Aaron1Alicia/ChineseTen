@@ -13,7 +13,7 @@ import org.chineseten.client.Color;
 import org.chineseten.client.GameApi.SetTurn;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
-//import org.cheat.client.GameApi.Delete;
+import org.chineseten.client.GameApi.EndGame;
 import org.chineseten.client.GameApi.Operation;
 import org.chineseten.client.GameApi.Set;
 import org.chineseten.client.GameApi.SetVisibility;
@@ -25,6 +25,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 
 
 //import java_cup.internal_error;
@@ -49,7 +50,6 @@ public class ChineseTenLgoic {
     private final String flip = "flip";
     //private final String noFlip = "noflip";
     private final String playerId = "playerId";
-    private static final String TURN = "turn"; // turn of which player (either W or B)
     private static final String STAGE = "stage"; // 0 for init, 4 for end, 1,2,3 for three stages
     private static final String W = "W"; // White hand
     private static final String B = "B"; // Black hand
@@ -103,7 +103,6 @@ public class ChineseTenLgoic {
             check(lastState.getStage() == 3 || lastState.getStage() == 0); 
             
             if (lastMove.contains(new Set(CLAIM, special))) {
-                //check(lastState.getStage() == 0, lastState.getStage());
                 return doClaimMoveOnSpecialCase(lastState, lastMove, playerIds);
             }
                 
@@ -113,7 +112,7 @@ public class ChineseTenLgoic {
             check(lastState.getStage() == 1, lastState.getStage());
             return doClaimMoveOnStage2(lastState, lastMove, playerIds);   
         } else if (lastMove.contains(new Set(STAGE, stage3))) {
-            System.out.println("Enter stage3");
+            //System.out.println("Enter stage3");
             check(lastState.getStage() == 2, lastState.getStage());
             return doClaimMoveOnStage3(lastState, lastMove, playerIds);       
         } else {
@@ -198,7 +197,30 @@ public class ChineseTenLgoic {
           new Set(turnOfColor.name() + "C", newWCOrBC),
           new Set(D, lastMoveD),
           new SetVisibility(C + diffWorB.get(0)));
+      
+      if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
+          
+         // System.out.println(newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size());
+         // System.out.println("endGme!");
+          List<Operation> endGame = Lists.newArrayList();
+          endGame.add(new SetTurn(state.getPlayerId(turnOfColor)));
+          endGame.add(new Set(STAGE, stage1));
+          endGame.add(new Set(CLAIM, match));
+          endGame.add(new Set(turnOfColor.name(), lastMoveWorB));
+          endGame.add(new Set(turnOfColor.name() + "C", newWCOrBC));
+          endGame.add(new Set(D, lastMoveD));
+          endGame.add(new SetVisibility(C + diffWorB.get(0)));
+          
+          endGame.add(new Shuffle(getCardsInRange(0, 51)));
+          if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
+              endGame.add(new EndGame(state.getPlayerId(turnOfColor)));
+          } else {
+              endGame.add(new EndGame(state.getPlayerId(turnOfColor.getOppositeColor())));
+          }
+          return endGame;
+      }
       return expectedOperations;
+      //return endGame;
     }
     
     /** Returns the operations for stage2. */
@@ -294,10 +316,10 @@ public class ChineseTenLgoic {
         Set setD = (Set) lastMove.get(5);
         List<Integer> lastMoveD = (List<Integer>) setD.getValue();
         List<Integer> diffD = subtract(lastD, lastMoveD);
-        check(diffD.size() == 1, lastD, lastMoveD, diffD);
+        check(diffD.size() == 3, lastD, lastMoveD, diffD);
         
         // Check whether sum is ten
-        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        check(checkWhetherIsSpcecialCase(state, diffWorB, diffD), diffWorB, diffD);
         
         List<Integer> newCollection = concat(diffWorB, diffD);
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       
@@ -312,7 +334,7 @@ public class ChineseTenLgoic {
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor)),
           new Set(STAGE, stage1),
-          new Set(CLAIM, match),
+          new Set(CLAIM, special),
           new Set(turnOfColor.name(), lastMoveWorB),
           new Set(turnOfColor.name() + "C", newWCOrBC),
           new Set(D, lastMoveD),
@@ -406,7 +428,7 @@ public class ChineseTenLgoic {
         return result;
     }
     
-    /** Check whether the sum of collected cards is ten or other cases that the rule allows*/
+    /** Check whether the sum of collected cards is ten or other cases that the rule allows.*/
     boolean checkWhetherSumIsTen(ChineseTenState state, List<Integer> a, List<Integer> b) {
         check(a.size() == 1, a);
         check(b.size() == 1, b);
@@ -429,6 +451,20 @@ public class ChineseTenLgoic {
         } else {
             return false;
         }        
+    }
+    
+    /** Check Whether collect 4 cards is legal.*/
+    boolean checkWhetherIsSpcecialCase(ChineseTenState state, List<Integer> a, List<Integer> b) {
+        Rank tmp = state.getCards().get(a.get(0)).get().getRank();
+        
+        for (Integer cardIndex : b) {          
+            Card card = state.getCards().get(cardIndex).get();
+            check(card.getRank().checkWhetherNumberIsSpecial(), card);
+            if (card.getRank() != tmp) {
+                return false;
+            }               
+            }
+        return true;
     }
 
 }

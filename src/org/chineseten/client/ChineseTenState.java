@@ -94,7 +94,11 @@ public class ChineseTenState {
   
   public ImmutableList<Integer> getWCOrBC(Color color) {
       return color.isWhite() ? whiteCollect : blackCollect;
-    }
+  }
+  
+  public ImmutableList<Integer> getOppositeCollection(Color color) {
+      return color.isWhite() ? blackCollect : whiteCollect;
+  }
 
   public ImmutableList<Integer> getMiddle() {
     return middle;

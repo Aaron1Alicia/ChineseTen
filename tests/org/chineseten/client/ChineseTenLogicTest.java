@@ -2,12 +2,14 @@ package org.chineseten.client;
 
 //import static com.google.common.base.Preconditions.checkArgument;
 import static org.junit.Assert.assertEquals;
+
 import org.chineseten.client.GameApi.SetTurn;
 
 import java.util.List;
 import java.util.Map;
 
 //import java_cup.internal_error;
+
 
 
 
@@ -27,11 +29,14 @@ import org.junit.runners.JUnit4;
 
 
 
+
 //import com.gargoylesoftware.htmlunit.javascript.host.OfflineResourceList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 //import com.google.common.collect.Iterables;
 //import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 @RunWith(JUnit4.class)
 public class ChineseTenLogicTest {
@@ -377,30 +382,33 @@ public class ChineseTenLogicTest {
     }
     
     // test for endGame
-    //@Test
+    @Test
     public void testEndGame1() {
       Map<String, Object> state = ImmutableMap.<String, Object>builder()
           .put(TURN, W)
-          .put(STAGE, stage1)
-          .put(W, ImmutableList.<Integer>of(26))
+          .put(STAGE, stage3)
+          .put(W, ImmutableList.<Integer>of(24))
           .put(B, ImmutableList.<Integer>of())
-          .put(WC, getIndicesInRange(27, 50))
-          .put(BC, getIndicesInRange(0, 25))
+          .put(WC, getIndicesInRange(25, 50))
+          .put(BC, getIndicesInRange(0, 23))
           .put(D, ImmutableList.<Integer>of(51))
           .put(M, ImmutableList.<Integer>of())
-          .put("C26", "5s")
+          .put("C24", "5s")
           .put("C51", "5h")
           .build();
+      
+      List<Integer> newWC = concat(ImmutableList.<Integer>of(24), ImmutableList.<Integer>of(51));
       // The order of operations: turn, claim, W, B, M, claim, C0...C51
       List<Operation> operations = ImmutableList.<Operation>of(
-          new Set(TURN, W),
+          new SetTurn(wId),
+          new Set(STAGE, stage1),
           new Set(CLAIM, match),
           new Set(W, ImmutableList.<Integer>of()),
-          new Set(WC, getIndicesInRange(26, 51)),
+          new Set(WC, concat(newWC, getIndicesInRange(25, 50))),
           new Set(D, ImmutableList.of()),
-          new SetVisibility("C26"),
+          new SetVisibility("C24"),
           new Shuffle(getCardsInRange(0, 51)),
-          new EndGame(bId));
+          new EndGame(wId));
 
       assertMoveOk(move(wId, state, operations));
     }
@@ -429,6 +437,10 @@ public class ChineseTenLogicTest {
           new EndGame(bId));
 
       assertMoveOk(move(wId, state, operations));
+    }
+    
+    <T> List<T> concat(List<T> a, List<T> b) {
+        return Lists.newArrayList(Iterables.concat(a, b));
     }
 
 }

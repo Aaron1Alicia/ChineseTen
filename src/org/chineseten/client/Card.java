@@ -77,6 +77,14 @@ public class Card extends Equality {
         }                           
         return rank;      
     }
+    
+    public boolean checkWhetherNumberIsSpecial() {
+        int rank = this.ordinal() + 2;
+        if (rank == 5 || rank == 10 || rank == 11 || rank == 12 || rank == 13) {
+            return true;
+        }                           
+        return false;      
+    }
 
     public String getFirstLetter() {
       int rank = this.ordinal() + 2;
