@@ -2,11 +2,13 @@ package org.chineseten.client;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+
 //import java_cup.internal_error;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.chineseten.client.Card;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
 import org.chineseten.client.GameApi.EndGame;
@@ -23,6 +25,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+
+/**
+ * 
+ * @author aaronwong
+ * @
+ */
 public class ChineseTenLgoic {
 
     private static final String C = "C"; // Card key (C0 .. C51)
@@ -75,6 +83,14 @@ public class ChineseTenLgoic {
       }
 
 //    @SuppressWarnings("unchecked")
+    /**
+     *  
+     * @param lastApiState
+     * @param lastMove
+     * @param playerIds
+     * @param lastMovePlayerId
+     * @return
+     */
     List<Operation> getExpectedOperations(Map<String, Object> lastApiState,
             List<Operation> lastMove, List<Integer> playerIds,
             int lastMovePlayerId) {
@@ -114,22 +130,37 @@ public class ChineseTenLgoic {
     }
 
     @SuppressWarnings("unchecked")
-    private ChineseTenState gameApiStateToChineseTenState(
+    ChineseTenState gameApiStateToChineseTenState(
             Map<String, Object> gameApiState, Color turnOfColor,
             List<Integer> playerIds) {
         List<Optional<Card>> cards = Lists.newArrayList();
+        
         for (int i = 0; i < 52; i++) {
             String cardString = (String) gameApiState.get(C + i);
             Card card;
             if (cardString == null) {
               card = null;
             } else {
-              Rank rank = Rank.fromFirstLetter(cardString.substring(0, 1));
-              Suit suit = Suit.fromFirstLetterLowerCase(cardString.substring(1));
+              Rank rank = Rank.fromFirstLetter(cardString.substring(0, cardString.length() - 1));
+              Suit suit = Suit.fromFirstLetterLowerCase(cardString.substring(cardString.length() - 1));
               card = new Card(suit, rank);
             }
             cards.add(Optional.fromNullable(card));
           }
+        
+//        for (int i = 0; i < 52; i++) {
+//            String cardString = (String) gameApiState.get(C + i);
+//            Card card;
+//            if (cardString == null) {
+//              card = null;
+//            } else {
+//              Rank rank = Rank.fromFirstLetter(cardString.substring(0, 1));
+//              //System.out.println(cardString.substring(0, 1));
+//              Suit suit = Suit.fromFirstLetterLowerCase(cardString.substring(1));
+//              card = new Card(suit, rank);
+//            }
+//            cards.add(Optional.fromNullable(card));
+//          }
         
         int stage = (int) gameApiState.get(STAGE);
         List<Integer> white = (List<Integer>) gameApiState.get(W);

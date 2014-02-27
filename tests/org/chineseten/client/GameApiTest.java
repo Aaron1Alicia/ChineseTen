@@ -12,10 +12,10 @@ import java.util.Map;
 import org.chineseten.client.GameApi.AttemptChangeTokens;
 import org.chineseten.client.GameApi.EndGame;
 import org.chineseten.client.GameApi.GameReady;
-import org.chineseten.client.GameApi.HasEquality;
 import org.chineseten.client.GameApi.MakeMove;
 import org.chineseten.client.GameApi.ManipulateState;
 import org.chineseten.client.GameApi.ManipulationDone;
+import org.chineseten.client.GameApi.Message;
 import org.chineseten.client.GameApi.Operation;
 import org.chineseten.client.GameApi.RequestManipulator;
 import org.chineseten.client.GameApi.Set;
@@ -45,8 +45,8 @@ public class GameApiTest {
   SetRandomInteger setRandomInteger = new SetRandomInteger("xcv", 23, 54);
   List<Operation> operations = Arrays.asList(set, setRandomInteger, set);
 
-  List<HasEquality> messages =
-      Arrays.<HasEquality>asList(
+  List<Message> messages =
+      Arrays.<Message>asList(
           new UpdateUI(42, playersInfo, state, lastState, operations, 12, ImmutableMap.of(42, 1)),
           new VerifyMove(playersInfo, state, lastState, operations, 23, ImmutableMap.of(42, 33)),
           set, setRandomInteger,
@@ -69,15 +69,15 @@ public class GameApiTest {
 
   @Test
   public void testSerialization() {
-    for (HasEquality equality : messages) {
-      assertEquals(equality, HasEquality.messageToHasEquality(equality.toMessage()));
+    for (Message equality : messages) {
+      assertEquals(equality, Message.messageToHasEquality(equality.toMessage()));
     }
   }
 
   @Test
   public void testEquals() {
-    for (HasEquality equality : messages) {
-      for (HasEquality equalityOther : messages) {
+    for (Message equality : messages) {
+      for (Message equalityOther : messages) {
         if (equality != equalityOther) {
           assertNotEquals(equality, equalityOther);
         }
