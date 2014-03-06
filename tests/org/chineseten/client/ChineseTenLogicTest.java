@@ -13,6 +13,7 @@ import java.util.Map;
 
 
 
+
 //import org.cheat.client.GameApi.Delete;
 import org.chineseten.client.GameApi.EndGame;
 //import org.cheat.client.GameApi.Shuffle;
@@ -30,6 +31,8 @@ import org.junit.runners.JUnit4;
 
 
 
+
+import com.gargoylesoftware.htmlunit.javascript.host.OfflineResourceList;
 //import com.gargoylesoftware.htmlunit.javascript.host.OfflineResourceList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -61,7 +64,7 @@ public class ChineseTenLogicTest {
       private final String reset = "reset";
       private final String match = "match";
       private final String special = "special";
-      //private final String noMatch = "nomatch";
+      private final String noMatch = "noMatch";
       private final String flip = "flip";
       //private final String noFlip = "noflip";
       private final String playerId = "playerId";
@@ -109,6 +112,9 @@ public class ChineseTenLogicTest {
             .put(M, getIndicesInRange(24, 47))
             .put("C11", "6s")
             .put("C51", "6h")
+            .put("C48", "7s")
+            .put("C49", "7h")
+            .put("C50", "8s")
             .build();
     
    // Intermediate state for test stage2
@@ -190,6 +196,14 @@ public class ChineseTenLogicTest {
      */
     
     // Below operations are used to test stage1
+    private final List<Operation> dropOneCard = ImmutableList.<Operation>of(
+            new SetTurn(wId),
+            new Set(STAGE, stage1),
+            new Set(CLAIM, noMatch),
+            new Set(W, getIndicesInRange(0, 10)),
+            new Set(D, concat(ImmutableList.<Integer>of(11), getIndicesInRange(48, 51))),
+            new SetVisibility("C11"));
+    
     private final List<Operation> claimWithWAndD = ImmutableList.<Operation>of(
             new SetTurn(wId),
             new Set(STAGE, stage1),
@@ -244,9 +258,18 @@ public class ChineseTenLogicTest {
             new SetTurn(bId),
             new Set(STAGE, stage3),
             new Set(CLAIM, match),
-            //new Set(WC, ImmutableList.of(11, 51, 47, 48)),
             new Set(WC, ImmutableList.of(47, 48, 11, 51)),
             new Set(D, ImmutableList.of(49, 50)));
+    
+    private final List<Operation> noMatchAndPassTurn = ImmutableList.<Operation>of(
+            new SetTurn(bId),
+            new Set(STAGE, stage3),
+            new Set(CLAIM, noMatch));
+    
+    private final List<Operation> noMatchAndNotPassTurn = ImmutableList.<Operation>of(
+            new SetTurn(wId),
+            new Set(STAGE, stage3),
+            new Set(CLAIM, noMatch));
     
     private final List<Operation> claimWithWrongTurn = ImmutableList.<Operation>of(
             new SetTurn(wId),
@@ -334,6 +357,12 @@ public class ChineseTenLogicTest {
     }
     
     @Test
+    public void testStage1legalMoveOfDropCards() {
+        assertMoveOk(move(wId, initialStateOfStage0CanNotCollect, dropOneCard));
+       // assertMoveOk(move(wId, initialStateOfStage0CanNotCollect, claimWithWAndD));
+    }
+    
+    @Test
     public void testStage1IllegalMoveOfWrongCollectPlace() {
         assertHacker(move(wId, initialStateOfStage0CanCollect, claimWithTwoW));
     }
@@ -363,6 +392,17 @@ public class ChineseTenLogicTest {
     @Test
     public void testStage3IllegalMoveOfWrongCollectCards() {
         assertHacker(move(wId, initialStateOfStage2CanNotCollect, claimWithTwoDs));
+    }
+    
+    @Test
+    public void testStage3LegalMoveOfPassTurn() {
+        assertMoveOk(move(wId, initialStateOfStage2CanNotCollect, noMatchAndPassTurn));
+    }
+    
+    @Test
+    public void testStage3IllegalMoveOfNotPassTurn() {
+        assertHacker(move(wId, initialStateOfStage2CanNotCollect, noMatchAndNotPassTurn));
+        //assertMoveOk(move(wId, initialStateOfStage2CanNotCollect, noMatchAndNotPassTurn));
     }
     
     @Test
@@ -407,12 +447,43 @@ public class ChineseTenLogicTest {
           new Set(WC, concat(newWC, getIndicesInRange(25, 50))),
           new Set(D, ImmutableList.of()),
           new SetVisibility("C24"),
-          new Shuffle(getCardsInRange(0, 51)),
+          //new Shuffle(getCardsInRange(0, 51)),
           new EndGame(wId));
 
       assertMoveOk(move(wId, state, operations));
     }
       
+    
+    @Test
+    public void testEndGameForStage3() {
+      Map<String, Object> state = ImmutableMap.<String, Object>builder()
+          .put(TURN, W)
+          .put(STAGE, stage2)
+          .put(W, ImmutableList.<Integer>of())
+          .put(B, ImmutableList.<Integer>of())
+          .put(WC, getIndicesInRange(25, 50))
+          .put(BC, getIndicesInRange(0, 23))
+          .put(D, ImmutableList.<Integer>of(24, 51))
+          .put(M, ImmutableList.<Integer>of())
+          .put("C24", "5s")
+          .put("C51", "5h")
+          .build();
+      
+      List<Integer> newWC = concat(ImmutableList.<Integer>of(24), ImmutableList.<Integer>of(51));
+      // The order of operations: turn, claim, W, B, M, claim, C0...C51
+      List<Operation> operations = ImmutableList.<Operation>of(
+          new SetTurn(bId),
+          new Set(STAGE, stage3),
+          new Set(CLAIM, match),
+          new Set(WC, concat(newWC, getIndicesInRange(25, 50))),
+          new Set(D, ImmutableList.of()),
+          //new SetVisibility("C24"),
+          //new Shuffle(getCardsInRange(0, 51)),
+          new EndGame(wId));
+
+      assertMoveOk(move(wId, state, operations));
+    }
+    
     <T> List<T> concat(List<T> a, List<T> b) {
         return Lists.newArrayList(Iterables.concat(a, b));
     }

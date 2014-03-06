@@ -3,11 +3,13 @@ package org.chineseten.client;
 import static com.google.common.base.Preconditions.checkArgument;
 
 
+
 //import java_cup.internal_error;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.bcel.generic.NEW;
 import org.chineseten.client.Card;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
@@ -42,6 +44,7 @@ public class ChineseTenLgoic {
     private final int stage3 = 3;
     //private final String reset = "reset";
     private final String match = "match";
+    private final String noMatch = "noMatch";
     private final String special = "special";
     //private final String noMatch = "nomatch";
     private final String flip = "flip";
@@ -111,18 +114,32 @@ public class ChineseTenLgoic {
             check(lastState.getStage() == 3 || lastState.getStage() == 0);        
             if (lastMove.contains(new Set(CLAIM, special))) {
                 return doClaimMoveOnSpecialCase(lastState, lastMove, playerIds);
-            }              
-            return doClaimMoveOnStage1(lastState, lastMove, playerIds);      
+            }  
+            if (lastMove.contains(new Set(CLAIM, match))) {
+                return doClaimMoveOnStage1(lastState, lastMove, playerIds);  
+            } else {
+                check(lastMove.contains(new Set(CLAIM, noMatch)));
+                return doNoClaimMoveOnStage1(lastState, lastMove, playerIds);
+            }
+                
         } else if (lastMove.contains(new Set(STAGE, stage2))) {
             //System.out.println("Enter stage2");
             // Check if move is legal in stage2
             check(lastState.getStage() == 1, lastState.getStage());
+            
+            //if (lastMove.contains(new Set(CLAIM, match))) {
             return doClaimMoveOnStage2(lastState, lastMove, playerIds);   
         } else if (lastMove.contains(new Set(STAGE, stage3))) {
             //System.out.println("Enter stage3");
             // Check if move is legal in stage3
             check(lastState.getStage() == 2, lastState.getStage());
-            return doClaimMoveOnStage3(lastState, lastMove, playerIds);       
+            if (lastMove.contains(new Set(CLAIM, match))) {
+                return doClaimMoveOnStage3(lastState, lastMove, playerIds);  
+            } else {
+                check(lastMove.contains(new Set(CLAIM, noMatch)));
+                return doNoClaimMoveOnStage3(lastState, lastMove, playerIds);        
+            }
+                  
         } else {
             return getInitialMove(playerIds.get(0), playerIds.get(1));
         }
@@ -142,7 +159,8 @@ public class ChineseTenLgoic {
               card = null;
             } else {
               Rank rank = Rank.fromFirstLetter(cardString.substring(0, cardString.length() - 1));
-              Suit suit = Suit.fromFirstLetterLowerCase(cardString.substring(cardString.length() - 1));
+              Suit suit = Suit.fromFirstLetterLowerCase(
+                      cardString.substring(cardString.length() - 1));
               card = new Card(suit, rank);
             }
             cards.add(Optional.fromNullable(card));
@@ -214,38 +232,96 @@ public class ChineseTenLgoic {
 //        new Set(D, lastMoveD),
 //        new SetVisibility(C + diffWorB.get(0)));  
 
-      List<Operation> expectedOperations = ImmutableList.<Operation>of(
-          new SetTurn(state.getPlayerId(turnOfColor)),
-          new Set(STAGE, stage1),
-          new Set(CLAIM, match),
-          new Set(turnOfColor.name(), lastMoveWorB),
-          new Set(turnOfColor.name() + "C", newWCOrBC),
-          new Set(D, lastMoveD),
-          new SetVisibility(C + diffWorB.get(0)));
+//      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+//          new SetTurn(state.getPlayerId(turnOfColor)),
+//          new Set(STAGE, stage1),
+//          new Set(CLAIM, match),
+//          new Set(turnOfColor.name(), lastMoveWorB),
+//          new Set(turnOfColor.name() + "C", newWCOrBC),
+//          new Set(D, lastMoveD),
+//          new SetVisibility(C + diffWorB.get(0)));
+      
+      List<Operation> expectedOperations = Lists.newArrayList();
+             expectedOperations.add(new SetTurn(state.getPlayerId(turnOfColor)));
+             expectedOperations.add(new Set(STAGE, stage1));
+             expectedOperations.add(new Set(CLAIM, match));
+             expectedOperations.add(new Set(turnOfColor.name(), lastMoveWorB));
+             expectedOperations.add(new Set(turnOfColor.name() + "C", newWCOrBC));
+             expectedOperations.add(new Set(D, lastMoveD));
+             expectedOperations.add(new SetVisibility(C + diffWorB.get(0)));
+             
+                 
       
       if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
           
          // System.out.println(newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size());
          // System.out.println("endGme!");
          
-          List<Operation> endGame = Lists.newArrayList();
-          endGame.add(new SetTurn(state.getPlayerId(turnOfColor)));
-          endGame.add(new Set(STAGE, stage1));
-          endGame.add(new Set(CLAIM, match));
-          endGame.add(new Set(turnOfColor.name(), lastMoveWorB));
-          endGame.add(new Set(turnOfColor.name() + "C", newWCOrBC));
-          endGame.add(new Set(D, lastMoveD));
-          endGame.add(new SetVisibility(C + diffWorB.get(0)));
+//          List<Operation> endGame = Lists.newArrayList();
+//          endGame.add(new SetTurn(state.getPlayerId(turnOfColor)));
+//          endGame.add(new Set(STAGE, stage1));
+//          endGame.add(new Set(CLAIM, match));
+//          endGame.add(new Set(turnOfColor.name(), lastMoveWorB));
+//          endGame.add(new Set(turnOfColor.name() + "C", newWCOrBC));
+//          endGame.add(new Set(D, lastMoveD));
+//          endGame.add(new SetVisibility(C + diffWorB.get(0)));
           
           // If it is time to end the game, we need choose the winner and shuffle the cards
-          endGame.add(new Shuffle(getCardsInRange(0, 51)));
+          //endGame.add(new Shuffle(getCardsInRange(0, 51)));
           if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
-              endGame.add(new EndGame(state.getPlayerId(turnOfColor)));
+              expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor)));
           } else {
-              endGame.add(new EndGame(state.getPlayerId(turnOfColor.getOppositeColor())));
+              expectedOperations.add(new EndGame(
+                      state.getPlayerId(turnOfColor.getOppositeColor())));
           }
-          return endGame;
+         // return endGame;
       }
+      return expectedOperations;
+      //return endGame;
+    }
+    
+    
+    @SuppressWarnings("unchecked")
+    List<Operation> doNoClaimMoveOnStage1(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {
+        
+        Color turnOfColor = state.getTurn();
+        
+        // Get the diff between last state W/B and last move W/B
+        List<Integer> lastWorB = state.getWhiteOrBlack(turnOfColor);      
+        Set setWorB = (Set) lastMove.get(3);
+        List<Integer> lastMoveWorB = (List<Integer>) setWorB.getValue();
+        List<Integer> diffWorB = subtract(lastWorB, lastMoveWorB);
+        check(diffWorB.size() == 1, lastWorB, lastMoveWorB, diffWorB);
+        
+        // Get the diff between last state D and last move D
+        List<Integer> lastD = state.getDeck();
+        Set setD = (Set) lastMove.get(4);
+        List<Integer> lastMoveD = (List<Integer>) setD.getValue();
+        List<Integer> diffD = subtract(lastMoveD, lastD);
+        check(diffD.size() == 1, lastD, lastMoveD, diffD);
+        
+        // Check diffWorB equals diffD
+        check(diffWorB.get(0) == diffD.get(0), diffWorB, diffD);      
+
+      // If Collect at stage1  then the format must be:
+//        new SetTurn(state.getPlayerId(turnOfColor)),
+//        new Set(STAGE, stage1),
+//        new Set(CLAIM, match),
+//        new Set(turnOfColor.name(), lastMoveWorB),
+//        new Set(turnOfColor.name() + "C", newWCOrBC),
+//        new Set(D, lastMoveD),
+//        new SetVisibility(C + diffWorB.get(0)));  
+
+      List<Operation> expectedOperations = ImmutableList.<Operation>of(
+          new SetTurn(state.getPlayerId(turnOfColor)),
+          new Set(STAGE, stage1),
+          new Set(CLAIM, noMatch),
+          new Set(turnOfColor.name(), subtract(lastWorB, diffWorB)),
+          new Set(D, concat(diffWorB, lastD)),
+          new SetVisibility(C + diffWorB.get(0)));
+      
+      
       return expectedOperations;
       //return endGame;
     }
@@ -308,7 +384,11 @@ public class ChineseTenLgoic {
         // Check whether sum is ten
         check(checkWhetherSumIsTen(state, diffD1, diffD2), diffD1, diffD2);
         
-        List<Integer> newWCOrBC = concat(diffD, state.getWCOrBC(turnOfColor));       
+        List<Integer> newWCOrBC = concat(diffD, state.getWCOrBC(turnOfColor));  
+        
+        
+        
+
 
       // If Collect at stage3  then the format must be:
 //        new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
@@ -316,13 +396,50 @@ public class ChineseTenLgoic {
 //        new Set(CLAIM, match),
 //        new Set(turnOfColor.name() + "C", newWCOrBC),
 //        new Set(D, lastMoveD));
+        
+        
+
+      List<Operation> expectedOperations = Lists.newArrayList();
+              
+         expectedOperations.add(new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())));
+         expectedOperations.add(new Set(STAGE, stage3));
+         expectedOperations.add(new Set(CLAIM, match));
+         expectedOperations.add(new Set(turnOfColor.name() + "C", newWCOrBC));
+         expectedOperations.add(new Set(D, lastMoveD));
+      
+      
+    if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
+    
+     if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
+         expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor)));
+     } else {
+         expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor.getOppositeColor())));
+     }
+     //return endGame;
+ }
+      
+      
+      
+      return expectedOperations;
+    }
+    
+    
+    //x@SuppressWarnings("unchecked")
+    List<Operation> doNoClaimMoveOnStage3(ChineseTenState state, List<Operation> lastMove, 
+        List<Integer> playerIds) {       
+        Color turnOfColor = state.getTurn();
+       
+        
+      // If Collect at stage3  then the format must be:
+//        new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
+//        new Set(STAGE, stage3),
+//        new Set(CLAIM, noMatch),
 
       List<Operation> expectedOperations = ImmutableList.<Operation>of(
           new SetTurn(state.getPlayerId(turnOfColor.getOppositeColor())),
           new Set(STAGE, stage3),
-          new Set(CLAIM, match),
-          new Set(turnOfColor.name() + "C", newWCOrBC),
-          new Set(D, lastMoveD));
+          new Set(CLAIM, noMatch));
+      
       return expectedOperations;
     }
     
