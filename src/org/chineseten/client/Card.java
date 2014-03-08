@@ -4,7 +4,8 @@ package org.chineseten.client;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class Card extends Equality {
+
+public class Card extends Equality implements Comparable<Card> {
   public enum Suit  {
     CLUBS, DIAMONDS, HEARTS, SPADES;
 
@@ -165,5 +166,10 @@ public class Card extends Equality {
   @Override
   public Object getId() {
     return Arrays.asList(getSuit(), getRank());
+  }
+  
+  @Override
+  public int compareTo(Card o) {
+    return COMPARATOR.compare(this, o);
   }
 }

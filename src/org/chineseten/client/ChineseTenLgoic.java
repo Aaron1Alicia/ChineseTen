@@ -180,7 +180,7 @@ public class ChineseTenLgoic {
 //            cards.add(Optional.fromNullable(card));
 //          }
         
-        int stage = (int) gameApiState.get(STAGE);
+        int stage = (Integer) gameApiState.get(STAGE);
         List<Integer> white = (List<Integer>) gameApiState.get(W);
         List<Integer> black = (List<Integer>) gameApiState.get(B);
         List<Integer> whiteCollect = (List<Integer>) gameApiState.get(WC);

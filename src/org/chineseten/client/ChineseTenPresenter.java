@@ -34,11 +34,11 @@ public class ChineseTenPresenter {
    * STAGE_TWO: The player needs to flip one card from M to D if there is still cards left in M
    * STAGE_THREE: the player collects two cards within the d and move them to WC/BC
    */
-  enum ChineseTenMessage {
+  public enum ChineseTenMessage {
     STAGE_ONE, STAGE_TWO, STAGE_THREE;
   }
 
-  interface View {
+  public interface View {
     /**
      * Sets the presenter. The viewer will call certain methods on the presenter, e.g.,
      * when a card is selected ({@link #cardSelected}),
@@ -95,7 +95,7 @@ public class ChineseTenPresenter {
   private final int stage1 = 1;
   private final int stage2 = 2;
   private final int stage3 = 3;
-  private final String reset = "reset";
+  //private final String reset = "reset";
   private final String match = "match";
   private final String special = "special";
   //private final String noMatch = "nomatch";
@@ -285,7 +285,7 @@ public class ChineseTenPresenter {
    * Adds/remove the card from the {@link #selectedCards}.
    * The view can only call this method if the presenter called {@link View#chooseNextCard}.
    */
-  void cardSelectedInHand(Card card) {
+  public void cardSelectedInHand(Card card) {
     check(isMyTurn());
     if (selectedCardsInHand.contains(card)) {
       selectedCardsInHand.remove(card);
@@ -295,7 +295,7 @@ public class ChineseTenPresenter {
     chooseNextCardInHand();
   }
   
-  void cardSelectedInDeck(Card card) {
+  public void cardSelectedInDeck(Card card) {
       check(isMyTurn());
       if (selectedCardsInDeck.contains(card)) {
         selectedCardsInDeck.remove(card);
@@ -305,7 +305,7 @@ public class ChineseTenPresenter {
       chooseNextCardInDeck();
     }
   
-  void cardSelectedInMiddle(Card card) {
+  public void cardSelectedInMiddle(Card card) {
       check(isMyTurn() && chineseTenState.getMiddle().size() > 0);
       if (selectedCardsInMiddle.contains(card)) {
         selectedCardsInMiddle.remove(card);
@@ -320,13 +320,13 @@ public class ChineseTenPresenter {
    * The view can only call this method if the presenter called {@link View#chooseNextCard}
    * and more than one card was selected by calling {@link #cardSelected}.
    */
-  void finishedSelectingCardsInHand() {
+  public void finishedSelectingCardsInHand() {
     check(isMyTurn() && selectedCardsInHand.size() < 2);
     view.chooseNextCardInDeck(selectedCardsInDeck, 
             chineseTenLgoic.subtract(getMyCardsInDeck(), selectedCardsInDeck));
   }
   
-  void finishedSelectingCardsInDeckForStage1() {
+  public void finishedSelectingCardsInDeckForStage1() {
       check(isMyTurn() && selectedCardsInDeck.size() < 2);
            
      // List<Card> newCollecion = chineseTenLgoic.concat(selectedCardsInHand, selectedCardsInDeck);
@@ -354,7 +354,7 @@ public class ChineseTenPresenter {
       container.sendMakeMove(claimWithWAndD);
     }
   
-  void finishedSelectingCardsInDeckForStage3() {
+  public void finishedSelectingCardsInDeckForStage3() {
       check(isMyTurn() && selectedCardsInDeck.size() == 2);
            
       Card dToRomoveOne = selectedCardsInDeck.get(0);
@@ -380,7 +380,7 @@ public class ChineseTenPresenter {
       container.sendMakeMove(claimWithWAndD);
     }
   
-  void finishedFlipCardsForStage2() {
+  public void finishedFlipCardsForStage2() {
       check(isMyTurn() && selectedCardsInMiddle.size() == 1);
            
      // List<Card> newCollecion = chineseTenLgoic.concat(selectedCardsInHand, selectedCardsInDeck);
