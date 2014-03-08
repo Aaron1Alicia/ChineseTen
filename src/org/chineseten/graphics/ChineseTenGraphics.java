@@ -104,7 +104,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private List<Image> createImages(List<CardImage> images, boolean withClick) {
     List<Image> res = Lists.newArrayList();
     for (CardImage img : images) {
-      final CardImage imgFinal = img;
+     // final CardImage imgFinal = img;
       Image image = new Image(cardImageSupplier.getResource(img));
 //      if (withClick) {
 //        image.addClickHandler(new ClickHandler() {
@@ -151,7 +151,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
             @Override
             public void onClick(ClickEvent event) {
               if (enableClicksForDeck) {
-                presenter.cardSelectedInHand(imgFinal.card);
+                presenter.cardSelectedInDeck(imgFinal.card);
               }
             }
           });
@@ -175,12 +175,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private void alertStageMessage(ChineseTenMessage chineseTenMessage) {
     String message = "";
     List<String> options = Lists.newArrayList();
-//    final String callCheatOption = "Call cheater!";
-//    if (lastClaim.isPresent()) {
-//      Claim claim = lastClaim.get();
-//      message = "Dropped " + claim.getNumberOfCards()
-//          + " cards, and claimed they are of rank " + claim.getCardRank() + ". ";
-//    }
+
     switch (chineseTenMessage) {
       case STAGE_ONE:
         message += "This is stage1, please collect one card from yourarea and "
@@ -198,6 +193,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
 //        options.add(callCheatOption);
         break;
       default:
+          message += "stage0 or endgame!";
         break;
     }
     if (message.isEmpty()) {
@@ -220,7 +216,8 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private void disableClicks() {
     claimBtn.setEnabled(false);
     claimBtnOfDeck.setEnabled(false);
-    //enableClicks = false;
+    enableClicksForHand = false;
+    enableClicksForDeck = false;
   }
 
   @UiHandler("claimBtn")
@@ -247,19 +244,6 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
           ChineseTenMessage chineseTenMessage) {
       
   }
-
-//  @Override
-//  public void setViewerState(int numberOfWhiteCards, int numberOfBlackCards,
-//      int numberOfCardsInMiddlePile, CheaterMessage cheaterMessage,
-//      Optional<Claim> lastClaim) {
-//    placeImages(playerArea, createBackCards(numberOfWhiteCards));
-//    placeImages(selectedArea, ImmutableList.<Image>of());
-//    placeImages(opponentArea, createBackCards(numberOfBlackCards));
-//    placeImages(middleArea, createBackCards(numberOfCardsInMiddlePile));
-//    alertCheaterMessage(cheaterMessage, lastClaim);
-//    disableClicks();
-//  }
-
   
   @Override
   public void setPlayerState(int numberOfOpponentCards, int numberOfCardsInMiddlePile,
@@ -277,26 +261,30 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       placeImages(deckArea, createCardImages(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
-      //alertCheaterMessage(cheaterMessage, lastClaim);
       alertStageMessage(chineseTenMessage);
       disableClicks();     
   }
 
   @Override
-  public void chooseNextCardInHand(List<Card> selectedCards, List<Card> remainingCards) {
-    Collections.sort(selectedCards);
+  public void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards) {
+    Collections.sort(selectedCardsInHand);
     Collections.sort(remainingCards);
-    //enableClicks = true;
-    placeImages(playerArea, createCardImages(remainingCards, true));
-    placeImages(selectedArea, createCardImages(selectedCards, true));
-    claimBtn.setEnabled(!selectedCards.isEmpty());
+    enableClicksForHand = true;
+    placeImages(playerArea, createCardImagesInHand(remainingCards, true));
+    placeImages(selectedArea, createCardImagesInHand(selectedCardsInHand, true));
+    claimBtn.setEnabled(!selectedCardsInHand.isEmpty());
   }
   
   
   //void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards);
   
   public void chooseNextCardInDeck(List<Card> selectedCardsInDeck, List<Card> remainingCards) {
-      
+      Collections.sort(selectedCardsInDeck);
+      Collections.sort(remainingCards);
+      enableClicksForDeck = true;
+      placeImages(playerArea, createCardImagesInDeck(remainingCards, true));
+      placeImages(selectedArea, createCardImagesInDeck(selectedCardsInDeck, true));
+      claimBtnOfDeck.setEnabled(!selectedCardsInDeck.isEmpty());  
   }
   
   public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Card> selectedCardsInDeck, 
@@ -304,17 +292,4 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       
   }
 
-//  @Override
-//  public void chooseRankForClaim(List<Rank> possibleClaims) {
-//    List<String> options = Lists.newArrayList();
-//    for (Rank rank : possibleClaims) {
-//      options.add(rank.toString());
-//    }
-//    new PopupChoices("Choose rank", options, new PopupChoices.OptionChosen() {
-//          @Override
-//          public void optionChosen(String option) {
-//            presenter.rankSelected(Rank.valueOf(option));
-//          }
-//        }).center();
-//  }
 }
