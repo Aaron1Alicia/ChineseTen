@@ -85,7 +85,6 @@ public class ChineseTenLgoic {
         }
       }
 
-//    @SuppressWarnings("unchecked")
     /**
      *  
      * @param lastApiState
@@ -253,18 +252,6 @@ public class ChineseTenLgoic {
                  
       
       if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
-          
-         // System.out.println(newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size());
-         // System.out.println("endGme!");
-         
-//          List<Operation> endGame = Lists.newArrayList();
-//          endGame.add(new SetTurn(state.getPlayerId(turnOfColor)));
-//          endGame.add(new Set(STAGE, stage1));
-//          endGame.add(new Set(CLAIM, match));
-//          endGame.add(new Set(turnOfColor.name(), lastMoveWorB));
-//          endGame.add(new Set(turnOfColor.name() + "C", newWCOrBC));
-//          endGame.add(new Set(D, lastMoveD));
-//          endGame.add(new SetVisibility(C + diffWorB.get(0)));
           
           // If it is time to end the game, we need choose the winner and shuffle the cards
           //endGame.add(new Shuffle(getCardsInRange(0, 51)));

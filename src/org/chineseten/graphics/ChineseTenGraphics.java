@@ -254,11 +254,11 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       Collections.sort(myCardsInCollection);
       Collections.sort(cardsInDeck);
       Collections.sort(cardsOfOpponentInCollection);
-      placeImages(playerArea, createCardImages(myCardsInHand, false));
+      placeImages(playerArea, createCardImagesInHand(myCardsInHand, false));
       placeImages(selectedArea, ImmutableList.<Image>of());
       placeImages(opponentArea, createBackCards(numberOfOpponentCards));
       placeImages(middleArea, createBackCards(numberOfCardsInMiddlePile));
-      placeImages(deckArea, createCardImages(cardsInDeck, false));
+      placeImages(deckArea, createCardImagesInDeck(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
       alertStageMessage(chineseTenMessage);
