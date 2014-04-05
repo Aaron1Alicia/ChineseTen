@@ -13,6 +13,8 @@ import java_cup.internal_error;
 
 
 
+
+
 //import org.chineseten.client.GameApi;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
@@ -23,6 +25,7 @@ import org.chineseten.client.GameApi.Container;
 import org.chineseten.client.GameApi.Operation;
 import org.chineseten.client.GameApi.Set;
 import org.chineseten.client.GameApi.SetTurn;
+import org.chineseten.client.GameApi.SetVisibility;
 import org.chineseten.client.GameApi.UpdateUI;
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +37,7 @@ import org.mockito.Mockito;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -74,7 +78,8 @@ public class ChineseTenPresenterTest {
   private final int stage3 = 3;
 //  private final String reset = "reset";
   private final String match = "match";
-  private final String special = "special";
+  private final String noMatch = "noMatch";
+  //private final String special = "special";
   //private final String noMatch = "nomatch";
   private final String flip = "flip";
   //private final String noFlip = "noflip";
@@ -169,8 +174,41 @@ public class ChineseTenPresenterTest {
             new SetTurn(wId),
             new Set(STAGE, stage1),
             new Set(CLAIM, match),
-            new Set("WC", ImmutableList.<Integer>of(0, 24)));
+            new Set("W", chineseTenLgoic.getIndicesInRange(1, 11)),
+            new Set("WC", ImmutableList.<Integer>of(0, 24)),
+            new Set("D", chineseTenLgoic.getIndicesInRange(25, 27)),
+            new SetVisibility("C0"));
     verify(mockContainer).sendMakeMove(claimWithWAndD);
+    
+  } 
+  
+  @Test
+  public void testStage1ForWTurnOfWNoClaim() {
+    chineseTenPresenter.updateUI(createUpdateUI(wId, wId, stateForOne));
+    verify(mockView).setPlayerState(12, 24, getCards(0, 12), getCards(0, 0), 
+            getCards(24, 28), getCards(0, 0), ChineseTenMessage.STAGE_ONE);
+    verify(mockView).chooseNextCardInHand(ImmutableList.<Card>of(), getCards(0, 12));
+    chineseTenPresenter.cardSelectedInHand(getCards(0, 1).get(0));
+    verify(mockView).chooseNextCardInHand(ImmutableList.<Card>of(getCards(0, 1).get(0)), 
+            chineseTenLgoic.subtract(getCards(0, 12), getCards(0, 1)));
+    chineseTenPresenter.finishedSelectingCardsInHand();
+    //verify(mockView).chooseNextCardInDeck(getCards(24, 24), getCards(24, 28));
+    chineseTenPresenter.cardSelectedInDeck(getCards(24, 25).get(0));
+    verify(mockView).chooseNextCardInDeck(getCards(24, 25), 
+            chineseTenLgoic.subtract(getCards(24, 28), getCards(24, 25)));
+    chineseTenPresenter.cardSelectedInDeck(getCards(24, 25).get(0));
+    verify(mockView, times(2)).chooseNextCardInDeck(ImmutableList.<Card>of(), getCards(24, 28));
+    chineseTenPresenter.finishedSelectingCardsInDeckForStage1();
+    
+    List<Operation> expected = ImmutableList.<Operation>of(
+            new SetTurn(wId),
+            new Set(STAGE, stage1),
+            new Set(CLAIM, noMatch),
+            new Set("W", chineseTenLgoic.getIndicesInRange(1, 11)),
+            new Set("D", concat(chineseTenLgoic.getIndicesInRange(0, 0), 
+                    chineseTenLgoic.getIndicesInRange(24, 27))),
+            new SetVisibility("C0"));
+    verify(mockContainer).sendMakeMove(expected);
     
   } 
 
@@ -199,8 +237,6 @@ public class ChineseTenPresenterTest {
       chineseTenPresenter.updateUI(createUpdateUI(bId, wId, stateForTwo));
       verify(mockView).setPlayerState(12, 24, getCards(12, 24), getCards(0, 0), 
               getCards(24, 28), getCards(0, 0), ChineseTenMessage.STAGE_TWO);
-//      verify(mockView).flipOneCardIfThereisCardsLeftInMiddlePile(
-//              ImmutableList.<Card>of(), getCards(28, 52));
       
   }
   
@@ -222,7 +258,8 @@ public class ChineseTenPresenterTest {
               new Set(CLAIM, flip),
               new Set(D, chineseTenLgoic.concat(chineseTenLgoic.getIndicesInRange(28, 28), 
                       chineseTenLgoic.getIndicesInRange(24, 27))),                      
-              new Set(M, chineseTenLgoic.getIndicesInRange(29, 51))) ;
+              new Set(M, chineseTenLgoic.getIndicesInRange(29, 51)),
+              new SetVisibility("C28"));
       
       verify(mockContainer).sendMakeMove(flipOperation);
   }
@@ -246,6 +283,7 @@ public class ChineseTenPresenterTest {
       
   }
   
+  // This test will run throuth if we delete the restraition of sum is ten
   @Test
   public void testStage3ForWTurnOfWClaim() {
       chineseTenPresenter.updateUI(createUpdateUI(wId, wId, stateForThree));
@@ -261,11 +299,32 @@ public class ChineseTenPresenterTest {
       chineseTenPresenter.finishedSelectingCardsInDeckForStage3();
       
       List<Operation> claimWithTwoDs = ImmutableList.<Operation>of(
-              new SetTurn(wId),
-              new Set(STAGE, stage1),
+              new SetTurn(bId),
+              new Set(STAGE, stage3),
               new Set(CLAIM, match),
               new Set("WC", ImmutableList.<Integer>of(24, 25)),
               new Set("D", ImmutableList.<Integer>of(26, 27)));
+      verify(mockContainer).sendMakeMove(claimWithTwoDs);      
+    } 
+  
+  @Test
+  public void testStage3ForWTurnOfWNoClaim() {
+      chineseTenPresenter.updateUI(createUpdateUI(wId, wId, stateForThree));
+      verify(mockView).setPlayerState(12, 24, getCards(0, 12), getCards(0, 0), 
+              getCards(24, 28), getCards(0, 0), ChineseTenMessage.STAGE_THREE);
+      verify(mockView).chooseNextCardInDeck(ImmutableList.<Card>of(), getCards(24, 28));
+//      chineseTenPresenter.cardSelectedInDeck(getCards(24, 25).get(0));
+//      verify(mockView).chooseNextCardInDeck(getCards(24, 25), 
+//              chineseTenLgoic.subtract(getCards(24, 28), getCards(24, 25)));
+//      chineseTenPresenter.cardSelectedInDeck(getCards(25, 26).get(0));
+//      verify(mockView).chooseNextCardInDeck(getCards(24, 26), 
+//              chineseTenLgoic.subtract(getCards(24, 28), getCards(24, 26)));
+      chineseTenPresenter.finishedSelectingCardsInDeckForStage3();
+      
+      List<Operation> claimWithTwoDs = ImmutableList.<Operation>of(
+              new SetTurn(bId),
+              new Set(STAGE, stage3),
+              new Set(CLAIM, noMatch));
       verify(mockContainer).sendMakeMove(claimWithTwoDs);      
     } 
   
@@ -328,5 +387,9 @@ public class ChineseTenPresenterTest {
         ImmutableList.<Operation>of(new SetTurn(turnOfPlayerId)),
         0,
         ImmutableMap.<Integer, Integer>of());
+  }
+  
+  <T> List<T> concat(List<T> a, List<T> b) {
+      return Lists.newArrayList(Iterables.concat(a, b));
   }
 }

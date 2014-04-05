@@ -1,9 +1,11 @@
 package org.chineseten.client;
 
+import java.util.Arrays;
 import java.util.List;
 
 import java_cup.internal_error;
 
+import org.apache.tools.ant.taskdefs.SendEmail;
 import org.chineseten.client.Card;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.GameApi.Container;
@@ -15,6 +17,7 @@ import org.chineseten.client.GameApi.UpdateUI;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -45,7 +48,7 @@ public class ChineseTenPresenter {
      * when selection is done ({@link #finishedSelectingCards}), etc.
      *
      * The process of making a claim in stage1 looks as follows to the viewer:
-     * 1) The viewer calls {@link #cardSelectedInHand} and {@link #cardSelectedInDeck} a couple of times
+     * 1) The viewer calls {@link #cardSelectedInHand} a couple of times
      * 2) The viewer calls {@link #finishedSelectingCardsInHand} to finalize his selection
      * 3) The viewer calls {@link #cardSelectedInDeck} a couple of times
      * 4) The viewer calls {@link #finishedSelectingCardsInDeckForStage1} to finalize his selection
@@ -97,7 +100,8 @@ public class ChineseTenPresenter {
   private final int stage3 = 3;
   //private final String reset = "reset";
   private final String match = "match";
-  private final String special = "special";
+  private final String noMatch = "noMatch";
+  //private final String special = "special";
   //private final String noMatch = "nomatch";
   private final String flip = "flip";
   //private final String noFlip = "noflip";
@@ -110,7 +114,7 @@ public class ChineseTenPresenter {
   private static final String WC = "WC"; // Cards collected by W
   private static final String BC = "BC"; // Cards collected by B
   private static final String D = "D"; // Cards faced up around M
-  //private static final String C = "C"; // Card key (C1 .. C54)
+  private static final String C = "C"; // Card key (C1 .. C54)
   private static final String CLAIM = "claim"; 
   private final ChineseTenLgoic chineseTenLgoic = new ChineseTenLgoic();
   private final View view;
@@ -328,35 +332,100 @@ public class ChineseTenPresenter {
   
   public void finishedSelectingCardsInDeckForStage1() {
       check(isMyTurn() && selectedCardsInDeck.size() < 2);
-           
-     // List<Card> newCollecion = chineseTenLgoic.concat(selectedCardsInHand, selectedCardsInDeck);
+            
+      if (selectedCardsInDeck.size() == 1) {
+          sendMatchMoveForStageOne();       
+      } else if (selectedCardsInDeck.size() == 0 && selectedCardsInHand.size() == 1) {
+          sendNoMatchMoveForStageOne();
+      } else {        
+           throw new RuntimeException("The operations in stage1 is not right!"
+                          + "selectedCardsInDeck.size() = " + selectedCardsInDeck.size() + ","
+                          + "selectedCardsInHand.size() = " + selectedCardsInHand.size() 
+                          + "\n");    
+      }
+     
+    }
+  
+  public void sendMatchMoveForStageOne() {
       
       List<Integer> myCardIndices = chineseTenState.getWhiteOrBlack(myColor.get());
-     //  List<Integer> deck = chineseTenState.getDeck();
+      //List<Integer> myCollections = chineseTenState.getWCOrBC(myColor.get());
       Card wToRomove = selectedCardsInHand.get(0);
       Card dToRomove = selectedCardsInDeck.get(0);
       
       List<Integer> newWC = Lists.newArrayList();
       
       Integer w = myCardIndices.get(getMyCardsInHand().indexOf(wToRomove));
+      List<Integer> myNewCardIndices = Lists.newArrayList();
+      myNewCardIndices.addAll(myCardIndices);
+      myNewCardIndices.remove(w);
+      
       Integer d = chineseTenState.getDeck().get(getMyCardsInDeck().indexOf(dToRomove));
+      List<Integer> newDeck = Lists.newArrayList();
+      newDeck.addAll(chineseTenState.getDeck());
+      newDeck.remove(d);
       
       newWC.add(w);
-      newWC.add(d);    
+      newWC.add(d);  
       
-      List<Operation> claimWithWAndD = ImmutableList.<Operation>of(
+      List<Operation> operationsToSend = ImmutableList.<Operation>of(
               new SetTurn(yourPlayerId),
               new Set(STAGE, stage1),
               new Set(CLAIM, match),
+              new Set(myColor.get().name(), myNewCardIndices),
               new Set(myColor.get().name() + "C", 
-                      newWC));
+                      concat(newWC, chineseTenState.getWCOrBC(myColor.get()))),
+              new Set(D, newDeck),
+              new SetVisibility(new String(C + w))); 
       
-      container.sendMakeMove(claimWithWAndD);
-    }
+      //container.sendMakeMove(operationsToSend);
+      container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage1(
+              chineseTenState, operationsToSend, playerIds));
+  }
+  
+  public void sendNoMatchMoveForStageOne() {
+      
+      List<Integer> myCardIndices = chineseTenState.getWhiteOrBlack(myColor.get());
+      Card wToRomove = selectedCardsInHand.get(0);
+      Integer w = myCardIndices.get(getMyCardsInHand().indexOf(wToRomove));
+      List<Integer> newDeck = Lists.newArrayList();
+      newDeck.add(w);
+      check(newDeck.size() == 1, newDeck.size());
+      List<Integer> myNewCardIndices = Lists.newArrayList();
+      myNewCardIndices.addAll(myCardIndices);
+      myNewCardIndices.remove(w);
+     
+      
+      List<Operation> operationsToSend = ImmutableList.<Operation>of(
+              new SetTurn(yourPlayerId),
+              new Set(STAGE, stage1),
+              new Set(CLAIM, noMatch),
+              new Set(myColor.get().name(), myNewCardIndices),
+              new Set(D, concat(newDeck, chineseTenState.getDeck())),
+              new SetVisibility(new String(C + w)));   
+      //container.sendMakeMove(operationsToSend);
+      container.sendMakeMove(
+              chineseTenLgoic.doNoClaimMoveOnStage1(chineseTenState, operationsToSend, playerIds));
+  }
+  
   
   public void finishedSelectingCardsInDeckForStage3() {
-      check(isMyTurn() && selectedCardsInDeck.size() == 2);
+      check(isMyTurn() && selectedCardsInDeck.size() == 2 || selectedCardsInDeck.size() == 0);
            
+      
+      if (selectedCardsInDeck.size() == 2) {
+          sendMatchMoveForStageThree();
+      } else if (selectedCardsInDeck.size() == 0) {
+          sendNoMatchMoveForStageThree();
+      } else {
+          throw new RuntimeException("The operations in stage3 is not right!"
+                  + "selectedCardsInDeck.size() = " + selectedCardsInDeck.size() 
+                  + "\n");  
+      }
+      
+    }
+  
+  public void sendMatchMoveForStageThree() {
       Card dToRomoveOne = selectedCardsInDeck.get(0);
       Card dToRomoveTwo = selectedCardsInDeck.get(1);
       
@@ -369,44 +438,79 @@ public class ChineseTenPresenter {
       newD.add(d1);
       newD.add(d2);    
       
-      List<Operation> claimWithWAndD = ImmutableList.<Operation>of(
-              new SetTurn(yourPlayerId),
-              new Set(STAGE, stage1),
+      List<Operation> operationsToSend = ImmutableList.<Operation>of(
+              new SetTurn(chineseTenState.getPlayerId(myColor.get().getOppositeColor())),
+              new Set(STAGE, stage3),
               new Set(CLAIM, match),
               new Set(myColor.get().name() + "C", 
                       chineseTenLgoic.concat(newD, chineseTenState.getWCOrBC(myColor.get()))),
               new Set(D, chineseTenLgoic.subtract(chineseTenState.getDeck(), newD)));
       
-      container.sendMakeMove(claimWithWAndD);
-    }
+      //container.sendMakeMove(claimWithWAndD);
+      container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage3(
+              chineseTenState, operationsToSend, playerIds));
+      
+  }
+  
+  public void sendNoMatchMoveForStageThree() {
+      List<Operation> operationsToSend = ImmutableList.<Operation>of(
+              new SetTurn(chineseTenState.getPlayerId(myColor.get().getOppositeColor())),
+              new Set(STAGE, stage3),
+              new Set(CLAIM, noMatch));
+      
+      //container.sendMakeMove(claimWithWAndD);
+      container.sendMakeMove(chineseTenLgoic.doNoClaimMoveOnStage3(
+              chineseTenState, operationsToSend, playerIds));      
+  }
   
   public void finishedFlipCardsForStage2() {
       check(isMyTurn() && selectedCardsInMiddle.size() == 1);
-           
-     // List<Card> newCollecion = chineseTenLgoic.concat(selectedCardsInHand, selectedCardsInDeck);
       
       List<Integer> myCardIndices = chineseTenState.getMiddle();
       Card flip = selectedCardsInMiddle.get(0);
       
-      List<Integer> newMiddle = Lists.newArrayList();
-      
+      List<Integer> newDeck = Lists.newArrayList();    
       Integer m = myCardIndices.get(getCardsInMiddle().indexOf(flip));
-
-      newMiddle.add(m);
+      newDeck.add(m);
       
       List<Operation> flipOperation = ImmutableList.<Operation>of(
               new SetTurn(yourPlayerId),
               new Set(STAGE, stage2),
               new Set(CLAIM, "flip"),
-              new Set(D, chineseTenLgoic.concat(newMiddle, chineseTenState.getDeck())),
-                     new Set(M, chineseTenLgoic.subtract(chineseTenState.getMiddle(), newMiddle))) ;
+              new Set(D, chineseTenLgoic.concat(newDeck, chineseTenState.getDeck())),
+              new Set(M, chineseTenLgoic.subtract(chineseTenState.getMiddle(), newDeck)),
+              new SetVisibility(new String(C + m)));
       
-      container.sendMakeMove(flipOperation);
+      //container.sendMakeMove(flipOperation);
+      container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage2(
+              chineseTenState, flipOperation, playerIds));
     }
 
   private void sendInitialMove(List<Integer> playerIds) {
     int whitePlayerId = playerIds.get(0);
     int blackPlayerId = playerIds.get(1);
     container.sendMakeMove(chineseTenLgoic.getInitialMove(whitePlayerId, blackPlayerId));
+  }
+  
+  
+  // Below are some helper functions
+  <T> List<T> concat(List<T> a, List<T> b) {
+      return Lists.newArrayList(Iterables.concat(a, b));
+  }
+  
+  <T> List<T> subtract(List<T> removeFrom, List<T> elementsToRemove) {
+      check(removeFrom.containsAll(elementsToRemove), removeFrom,
+              elementsToRemove);
+      List<T> result = Lists.newArrayList(removeFrom);
+      result.removeAll(elementsToRemove);
+      check(removeFrom.size() == result.size() + elementsToRemove.size());
+      return result;
+  }
+  
+  private void check(boolean val, Object... debugArguments) {
+      if (!val) {
+          throw new RuntimeException("We have a hacker! debugArguments="
+                  + Arrays.toString(debugArguments));
+      }
   }
 }
