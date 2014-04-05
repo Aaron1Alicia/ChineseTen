@@ -261,13 +261,21 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       placeImages(deckArea, createCardImagesInDeck(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
-      alertStageMessage(chineseTenMessage);
+      //alertStageMessage(chineseTenMessage);
       disableClicks();     
   }
 
   @Override
   public void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards) {
-    Collections.sort(selectedCardsInHand);
+//      try {
+//          Collections.sort(selectedCardsInHand);
+//      }catch(Exception e) {
+//          System.out.println("What the fuck was going on");
+//          GWT.log("What the fuck was going on, gwt");
+//          e.printStackTrace();
+//      }
+      
+      
     Collections.sort(remainingCards);
     enableClicksForHand = true;
     placeImages(playerArea, createCardImagesInHand(remainingCards, true));

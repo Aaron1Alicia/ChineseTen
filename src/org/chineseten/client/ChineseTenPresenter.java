@@ -263,6 +263,8 @@ public class ChineseTenPresenter {
     }
 
   private void chooseNextCardInHand() {
+      check(getMyCardsInHand().containsAll(selectedCardsInHand),
+              getMyCardsInHand(), selectedCardsInHand);
     view.chooseNextCardInHand(
         ImmutableList.copyOf(selectedCardsInHand), 
         chineseTenLgoic.subtract(getMyCardsInHand(), selectedCardsInHand));

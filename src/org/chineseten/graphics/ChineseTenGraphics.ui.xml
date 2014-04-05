@@ -10,10 +10,10 @@
     <g:HorizontalPanel height="100px">
       <g:HorizontalPanel ui:field="playerArea"/>
     </g:HorizontalPanel>
-    <g:HorizontalPanel height="100px">
-      <g:HorizontalPanel width="120" height="100px" ui:field="selectedArea"/>
+    <g:HorizontalPanel height="100px">    
       <g:Button ui:field="claimBtn" text="Finish selecting cards in hands"/>
       <g:Button ui:field="claimBtnOfDeck" text="Finish selecting cards in deck"/>
     </g:HorizontalPanel>
+    <g:HorizontalPanel width="120" height="100px" ui:field="selectedArea"/>
   </g:VerticalPanel>
 </ui:UiBinder> 
