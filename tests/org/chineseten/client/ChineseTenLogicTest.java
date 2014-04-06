@@ -3,36 +3,20 @@ package org.chineseten.client;
 //import static com.google.common.base.Preconditions.checkArgument;
 import static org.junit.Assert.assertEquals;
 
-import org.chineseten.client.GameApi.SetTurn;
-
 import java.util.List;
 import java.util.Map;
 
-//import java_cup.internal_error;
-
-
-
-
-
-//import org.cheat.client.GameApi.Delete;
-import org.chineseten.client.GameApi.EndGame;
-//import org.cheat.client.GameApi.Shuffle;
-import org.chineseten.client.GameApi.Set;
-import org.chineseten.client.GameApi.SetVisibility;
-import org.chineseten.client.GameApi.Shuffle;
-import org.chineseten.client.GameApi.Operation;
-//import org.chineseten.client.ChineseTenLgoic;
-import org.chineseten.client.GameApi.VerifyMove;
-import org.chineseten.client.GameApi.VerifyMoveDone;
+import org.game_api.GameApi.EndGame;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.SetVisibility;
+import org.game_api.GameApi.VerifyMove;
+import org.game_api.GameApi.VerifyMoveDone;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-
-
-
-
-import com.gargoylesoftware.htmlunit.javascript.host.OfflineResourceList;
 //import com.gargoylesoftware.htmlunit.javascript.host.OfflineResourceList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,6 +24,10 @@ import com.google.common.collect.ImmutableMap;
 //import com.google.common.collect.Lists;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+//import java_cup.internal_error;
+//import org.cheat.client.GameApi.Delete;
+//import org.cheat.client.GameApi.Shuffle;
+//import org.chineseten.client.ChineseTenLgoic;
 
 @RunWith(JUnit4.class)
 public class ChineseTenLogicTest {
@@ -55,8 +43,8 @@ public class ChineseTenLogicTest {
         assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
       }
     
-      private final int wId = 42;
-      private final int bId = 43;
+      private final String wId = "42";
+      private final String bId = "43";
       private final int stage0 = 0;
       private final int stage1 = 1;
       private final int stage2 = 2;
@@ -279,12 +267,12 @@ public class ChineseTenLogicTest {
             new Set(D, ImmutableList.of(49, 50)));
     
 
-    private VerifyMove move(int lastMovePlayerId,
+    private VerifyMove move(String lastMovePlayerId,
             Map<String, Object> lastState, List<Operation> lastMove) {
         return new VerifyMove(playersInfo,
         // in ChineseTen we never need to check the resulting state (the server makes
         // it, and the game doesn't have any hidden decisions such in Battleships)
-        emptyState, lastState, lastMove, lastMovePlayerId, ImmutableMap.<Integer, Integer>of());
+        emptyState, lastState, lastMove, lastMovePlayerId, ImmutableMap.<String, Integer>of());
     }
 
     private List<Integer> getIndicesInRange(int fromInclusive, int toInclusive) {

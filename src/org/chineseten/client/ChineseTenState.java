@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class ChineseTenState {
   private final Color turn;
-  private final ImmutableList<Integer> playerIds;
+  private final ImmutableList<String> playerIds;
 
   /**
    * Note that some of the entries will have null, meaning the card is not visible to us.
@@ -38,7 +38,7 @@ public class ChineseTenState {
       ImmutableList<Integer> black, ImmutableList<Integer> whiteCollect,  
       ImmutableList<Integer> blackCollect, ImmutableList<Integer> deck, 
       ImmutableList<Integer> middle, ImmutableList<Optional<Card>> cards
-      , ImmutableList<Integer> playerIds) {
+      , ImmutableList<String> playerIds) {
     super();
     this.turn = checkNotNull(turn);
     this.stage = stage;
@@ -57,11 +57,11 @@ public class ChineseTenState {
     return turn;
   }
 
-  public ImmutableList<Integer> getPlayerIds() {
+  public ImmutableList<String> getPlayerIds() {
     return playerIds;
   }
 
-  public int getPlayerId(Color color) {
+  public String getPlayerId(Color color) {
     return playerIds.get(color.ordinal());
   }
 

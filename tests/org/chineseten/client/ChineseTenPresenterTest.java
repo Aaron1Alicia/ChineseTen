@@ -5,15 +5,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import java_cup.internal_error;
-
-
-
-
 
 //import org.chineseten.client.GameApi;
 import org.chineseten.client.Card.Rank;
@@ -21,12 +14,13 @@ import org.chineseten.client.Card.Suit;
 import org.chineseten.client.ChineseTenPresenter.ChineseTenMessage;
 //import org.chineseten.client.ChinPresenter.CheaterMessage;
 import org.chineseten.client.ChineseTenPresenter.View;
-import org.chineseten.client.GameApi.Container;
-import org.chineseten.client.GameApi.Operation;
-import org.chineseten.client.GameApi.Set;
-import org.chineseten.client.GameApi.SetTurn;
-import org.chineseten.client.GameApi.SetVisibility;
-import org.chineseten.client.GameApi.UpdateUI;
+import org.game_api.GameApi;
+import org.game_api.GameApi.Container;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.SetVisibility;
+import org.game_api.GameApi.UpdateUI;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +28,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -70,8 +63,8 @@ public class ChineseTenPresenterTest {
   private Container mockContainer;
 
   private static final String PLAYER_ID = "playerId";
-  private final int wId = 41;
-  private final int bId = 42;
+  private final String wId = "42";
+  private final String bId = "43";
   private final int stage0 = 0;
   private final int stage1 = 1;
   private final int stage2 = 2;
@@ -81,7 +74,7 @@ public class ChineseTenPresenterTest {
   private final String noMatch = "noMatch";
   //private final String special = "special";
   //private final String noMatch = "nomatch";
-  private final String flip = "flip";
+  //private final String flip = "flip";
   //private final String noFlip = "noflip";
   private final String playerId = "playerId";
   private static final String TURN = "turn"; // turn of which player (either W or B)
@@ -94,7 +87,7 @@ public class ChineseTenPresenterTest {
   private static final String D = "D"; // Cards faced up around M
   private static final String C = "C"; // Card key (C1 .. C54)
   private static final String CLAIM = "claim"; 
-  private final int viewerId = GameApi.VIEWER_ID;
+  private final String viewerId = GameApi.VIEWER_ID;
   
   
   private final ImmutableMap<String, Object> wInfo =
@@ -131,18 +124,18 @@ public class ChineseTenPresenterTest {
 
   @Test
   public void testEmptyStateForW() {
-    chineseTenPresenter.updateUI(createUpdateUI(wId, 0, emptyState));
+    chineseTenPresenter.updateUI(createUpdateUI(wId, wId, emptyState));
     verify(mockContainer).sendMakeMove(chineseTenLgoic.getInitialMove(wId, bId));
   }
 
   @Test
   public void testEmptyStateForB() {
-    chineseTenPresenter.updateUI(createUpdateUI(bId, 0, emptyState));
+    chineseTenPresenter.updateUI(createUpdateUI(bId, wId, emptyState));
   }
 
   @Test
   public void testEmptyStateForViewer() {
-    chineseTenPresenter.updateUI(createUpdateUI(viewerId, 0, emptyState));
+    chineseTenPresenter.updateUI(createUpdateUI(viewerId, wId, emptyState));
   }
 
   @Test
@@ -380,14 +373,14 @@ public class ChineseTenPresenterTest {
   }
 
   private UpdateUI createUpdateUI(
-      int yourPlayerId, int turnOfPlayerId, Map<String, Object> state) {
+      String yourPlayerId, String turnOfPlayerId, Map<String, Object> state) {
     // Our UI only looks at the current state
     // (we ignore: lastState, lastMovePlayerId, playerIdToNumberOfTokensInPot)
     return new UpdateUI(yourPlayerId, playersInfo, state,
         emptyState, // we ignore lastState
         ImmutableList.<Operation>of(new SetTurn(turnOfPlayerId)),
-        0,
-        ImmutableMap.<Integer, Integer>of());
+        null,
+        ImmutableMap.<String, Integer>of());
   }
   
   <T> List<T> concat(List<T> a, List<T> b) {

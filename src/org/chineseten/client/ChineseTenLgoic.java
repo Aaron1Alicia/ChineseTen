@@ -2,32 +2,22 @@ package org.chineseten.client;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-
-
-
-
-
 //import java_cup.internal_error;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import java_cup.internal_error;
-
-import org.apache.bcel.generic.NEW;
-import org.chineseten.client.Card;
 import org.chineseten.client.Card.Rank;
 import org.chineseten.client.Card.Suit;
-import org.chineseten.client.GameApi.EndGame;
-import org.chineseten.client.GameApi.Operation;
-import org.chineseten.client.GameApi.Set;
-import org.chineseten.client.GameApi.SetTurn;
-import org.chineseten.client.GameApi.SetVisibility;
-import org.chineseten.client.GameApi.Shuffle;
-import org.chineseten.client.GameApi.VerifyMove;
-import org.chineseten.client.GameApi.VerifyMoveDone;
+import org.game_api.GameApi.EndGame;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.SetVisibility;
+import org.game_api.GameApi.Shuffle;
+import org.game_api.GameApi.VerifyMove;
+import org.game_api.GameApi.VerifyMoveDone;
 
-import com.google.appengine.api.prospectivesearch.ProspectiveSearchPb.SubscriptionRecord.State;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -93,7 +83,7 @@ public class ChineseTenLgoic {
       if (lastState.isEmpty()) {
         check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0),
                 verifyMove.getLastMovePlayerId());
-        int temp = verifyMove.getLastMovePlayerId();
+        String temp = verifyMove.getLastMovePlayerId();
       //System.out.println("player ID is " + temp + "\n");
       GWT.log("plyaer ID is" + temp + "\n");
       GWT.log("verifyMove.getPlayerIds().get(0)" + verifyMove.getPlayerIds().get(0) + "\n");
@@ -109,8 +99,8 @@ public class ChineseTenLgoic {
      * @return
      */
     List<Operation> getExpectedOperations(Map<String, Object> lastApiState,
-            List<Operation> lastMove, List<Integer> playerIds,
-            int lastMovePlayerId) {
+            List<Operation> lastMove, List<String> playerIds,
+            String lastMovePlayerId) {
         if (lastApiState.isEmpty()) {
             return getInitialMove(playerIds.get(0), playerIds.get(1));
         }
@@ -163,7 +153,7 @@ public class ChineseTenLgoic {
     @SuppressWarnings("unchecked")
     ChineseTenState gameApiStateToChineseTenState(
             Map<String, Object> gameApiState, Color turnOfColor,
-            List<Integer> playerIds) {
+            List<String> playerIds) {
         List<Optional<Card>> cards = Lists.newArrayList();
         
         for (int i = 0; i < 52; i++) {
@@ -206,7 +196,7 @@ public class ChineseTenLgoic {
     /** Returns the operations for stage1. */
     @SuppressWarnings("unchecked")
     List<Operation> doClaimMoveOnStage1(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) {
+        List<String> playerIds) {
         
         Color turnOfColor = state.getTurn();
         
@@ -268,7 +258,7 @@ public class ChineseTenLgoic {
     
     @SuppressWarnings("unchecked")
     List<Operation> doNoClaimMoveOnStage1(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) {
+        List<String> playerIds) {
         
         Color turnOfColor = state.getTurn();
         
@@ -314,7 +304,7 @@ public class ChineseTenLgoic {
     /** Returns the operations for stage2. */
     @SuppressWarnings("unchecked")
     List<Operation> doClaimMoveOnStage2(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) {
+        List<String> playerIds) {
         
         Color turnOfColor = state.getTurn();
         
@@ -344,7 +334,7 @@ public class ChineseTenLgoic {
     /** Returns the operations for stage3. */
     @SuppressWarnings("unchecked")
     List<Operation> doClaimMoveOnStage3(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) { 
+        List<String> playerIds) { 
         
         check(state.getStage() == 2, state.getStage());
         Color turnOfColor = state.getTurn();
@@ -388,7 +378,7 @@ public class ChineseTenLgoic {
     
     //x@SuppressWarnings("unchecked")
     List<Operation> doNoClaimMoveOnStage3(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) {       
+        List<String> playerIds) {       
         Color turnOfColor = state.getTurn();
        
         
@@ -408,7 +398,7 @@ public class ChineseTenLgoic {
     @SuppressWarnings("unchecked")
     /** Return the operations on special case.*/
     List<Operation> doClaimMoveOnSpecialCase(ChineseTenState state, List<Operation> lastMove, 
-        List<Integer> playerIds) {
+        List<String> playerIds) {
         
         Color turnOfColor = state.getTurn();
         
@@ -478,7 +468,7 @@ public class ChineseTenLgoic {
     }
 
     /** Get Initial move at the beginning of the game.*/
-    List<Operation> getInitialMove(int whitePlayerId, int blackPlayerId) {
+    List<Operation> getInitialMove(String whitePlayerId, String blackPlayerId) {
         List<Operation> operations = Lists.newArrayList();
         // The order of operations: turn, isCheater, W, B, M, claim, C0...C51
         operations.add(new SetTurn(whitePlayerId));
@@ -510,7 +500,7 @@ public class ChineseTenLgoic {
         }
         for (int i = 24; i < 48; i++) {
             operations.add(new SetVisibility(C + i, ImmutableList
-                    .<Integer> of()));
+                    .<String> of()));
         }
         for (int i = 48; i < 52; i++) {
             operations.add(new SetVisibility(C + i));

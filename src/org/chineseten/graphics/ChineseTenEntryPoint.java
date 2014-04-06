@@ -2,11 +2,11 @@ package org.chineseten.graphics;
 
 import org.chineseten.client.ChineseTenLgoic;
 import org.chineseten.client.ChineseTenPresenter;
-import org.chineseten.client.GameApi;
-import org.chineseten.client.GameApi.Game;
-import org.chineseten.client.GameApi.IteratingPlayerContainer;
-import org.chineseten.client.GameApi.UpdateUI;
-import org.chineseten.client.GameApi.VerifyMove;
+import org.game_api.GameApi;
+import org.game_api.GameApi.Game;
+import org.game_api.GameApi.IteratingPlayerContainer;
+import org.game_api.GameApi.UpdateUI;
+import org.game_api.GameApi.VerifyMove;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -47,7 +47,7 @@ public class ChineseTenEntryPoint implements EntryPoint {
       @Override
       public void onChange(ChangeEvent event) {
         int selectedIndex = playerSelect.getSelectedIndex();
-        int playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
+        String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
             : container.getPlayerIds().get(selectedIndex);
         container.updateUi(playerId);
       }

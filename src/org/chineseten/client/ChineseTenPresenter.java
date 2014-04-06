@@ -3,17 +3,12 @@ package org.chineseten.client;
 import java.util.Arrays;
 import java.util.List;
 
-import java_cup.internal_error;
-
-import org.apache.tools.ant.taskdefs.SendEmail;
-import org.chineseten.client.Card;
-import org.chineseten.client.Card.Rank;
-import org.chineseten.client.GameApi.Container;
-import org.chineseten.client.GameApi.Operation;
-import org.chineseten.client.GameApi.Set;
-import org.chineseten.client.GameApi.SetTurn;
-import org.chineseten.client.GameApi.SetVisibility;
-import org.chineseten.client.GameApi.UpdateUI;
+import org.game_api.GameApi.Container;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.SetVisibility;
+import org.game_api.GameApi.UpdateUI;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -124,8 +119,8 @@ public class ChineseTenPresenter {
   private Optional<Color> myColor;
   private Color opponentColor;
   private ChineseTenState chineseTenState;
-  private List<Integer> playerIds;
-  private int yourPlayerId;
+  private List<String> playerIds;
+  private String yourPlayerId;
   private List<Card> selectedCardsInHand;
   private List<Card> selectedCardsInDeck;
   //private List<Card> selectedCardsInMiddle;
@@ -498,9 +493,9 @@ public class ChineseTenPresenter {
               chineseTenState, flipOperation, playerIds));
     }
 
-  private void sendInitialMove(List<Integer> playerIds) {
-    int whitePlayerId = playerIds.get(0);
-    int blackPlayerId = playerIds.get(1);
+  private void sendInitialMove(List<String> playerIds) {
+    String whitePlayerId = playerIds.get(0);
+    String blackPlayerId = playerIds.get(1);
     container.sendMakeMove(chineseTenLgoic.getInitialMove(whitePlayerId, blackPlayerId));
   }
   
