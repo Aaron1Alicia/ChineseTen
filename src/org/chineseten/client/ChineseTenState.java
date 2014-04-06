@@ -29,11 +29,12 @@ public class ChineseTenState {
   private final ImmutableList<Integer> blackCollect;
   private final ImmutableList<Integer> deck;
   private final ImmutableList<Integer> middle;
-  private final Optional<Claim> claim;
+ // private final Optional<Claim> claim;
+  private final Optional<String> claim;
   private final int stage;
 
   public ChineseTenState(Color turn,
-      int stage, Optional<Claim> claim, ImmutableList<Integer> white,
+      int stage, Optional<String> claim, ImmutableList<Integer> white,
       ImmutableList<Integer> black, ImmutableList<Integer> whiteCollect,  
       ImmutableList<Integer> blackCollect, ImmutableList<Integer> deck, 
       ImmutableList<Integer> middle, ImmutableList<Optional<Card>> cards
@@ -104,7 +105,7 @@ public class ChineseTenState {
     return middle;
   }
 
-  public Optional<Claim> getClaim() {
+  public Optional<String> getClaim() {
     return claim;
   }
   

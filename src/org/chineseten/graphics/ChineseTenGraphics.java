@@ -287,12 +287,12 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   //void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards);
   
   public void chooseNextCardInDeck(List<Card> selectedCardsInDeck, List<Card> remainingCards) {
-      Collections.sort(selectedCardsInDeck);
+      //Collections.sort(selectedCardsInDeck);
       Collections.sort(remainingCards);
       enableClicksForDeck = true;
-      placeImages(playerArea, createCardImagesInDeck(remainingCards, true));
+      placeImages(deckArea, createCardImagesInDeck(remainingCards, true));
       placeImages(selectedArea, createCardImagesInDeck(selectedCardsInDeck, true));
-      claimBtnOfDeck.setEnabled(!selectedCardsInDeck.isEmpty());  
+      claimBtnOfDeck.setEnabled(true);  
   }
   
   public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Card> selectedCardsInDeck, 

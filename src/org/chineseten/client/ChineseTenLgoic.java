@@ -4,10 +4,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 
 
+
+
 //import java_cup.internal_error;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import java_cup.internal_error;
 
 import org.apache.bcel.generic.NEW;
 import org.chineseten.client.Card;
@@ -26,6 +30,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.gwt.core.shared.GWT;
 
 
 /**
@@ -65,8 +70,11 @@ public class ChineseTenLgoic {
             checkMoveIsLegal(verifyMove);
             return new VerifyMoveDone();
         } catch (Exception e) {
+            GWT.log(e.getMessage());
+            e.printStackTrace();
             return new VerifyMoveDone(verifyMove.getLastMovePlayerId(),
                     e.getMessage());
+            
         }
     }
 
@@ -81,7 +89,12 @@ public class ChineseTenLgoic {
       // However, we do need to check the first move is done by the white player (and then in the
       // first MakeMove we'll send SetTurn which will guarantee the correct player send MakeMove).
       if (lastState.isEmpty()) {
-        check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0));
+        check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0),
+                verifyMove.getLastMovePlayerId());
+        int temp = verifyMove.getLastMovePlayerId();
+      //System.out.println("player ID is " + temp + "\n");
+      GWT.log("plyaer ID is" + temp + "\n");
+      GWT.log("verifyMove.getPlayerIds().get(0)" + verifyMove.getPlayerIds().get(0) + "\n");
         }
       }
 
@@ -173,9 +186,16 @@ public class ChineseTenLgoic {
         List<Integer> deck = (List<Integer>) gameApiState.get(D);
         List<Integer> middle = (List<Integer>) gameApiState.get(M);
         
-        return new ChineseTenState(turnOfColor, stage, Optional.fromNullable(Claim
-                .fromClaimEntryInGameState((List<String>) gameApiState.get(CLAIM))), 
-                 ImmutableList.copyOf(white), ImmutableList.copyOf(black),
+//        return new ChineseTenState(turnOfColor, stage, Optional.fromNullable(Claim
+//                .fromClaimEntryInGameState((List<String>) gameApiState.get(CLAIM))), 
+//                 ImmutableList.copyOf(white), ImmutableList.copyOf(black),
+//                 ImmutableList.copyOf(whiteCollect), ImmutableList.copyOf(blackCollect),
+//                 ImmutableList.copyOf(deck), ImmutableList.copyOf(middle),
+//                 ImmutableList.copyOf(cards), ImmutableList.copyOf(playerIds));
+        
+        return new ChineseTenState(turnOfColor, stage, Optional.fromNullable(
+                (String) gameApiState.get(CLAIM)), ImmutableList.copyOf(white), 
+                ImmutableList.copyOf(black),
                  ImmutableList.copyOf(whiteCollect), ImmutableList.copyOf(blackCollect),
                  ImmutableList.copyOf(deck), ImmutableList.copyOf(middle),
                  ImmutableList.copyOf(cards), ImmutableList.copyOf(playerIds));
@@ -203,7 +223,7 @@ public class ChineseTenLgoic {
         check(diffD.size() == 1, lastD, lastMoveD, diffD);
         
         // Check whether sum is ten
-        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        //check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
         
         List<Integer> newCollection = concat(diffWorB, diffD);
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       

@@ -56,7 +56,7 @@ public final class GameApi {
       this.game = game;
       List<Integer> playerIds = Lists.newArrayList();
       for (int i = 0; i < numberOfPlayers; i++) {
-        int playerId = 42 + i;
+        int playerId = 41 + i;
         playerIds.add(playerId);
         playersInfo.add(ImmutableMap.<String, Object>of(PLAYER_ID, playerId));
       }
