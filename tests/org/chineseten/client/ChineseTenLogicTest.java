@@ -55,8 +55,8 @@ public class ChineseTenLogicTest {
         assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
       }
     
-      private final int wId = 41;
-      private final int bId = 42;
+      private final int wId = 42;
+      private final int bId = 43;
       private final int stage0 = 0;
       private final int stage1 = 1;
       private final int stage2 = 2;
@@ -350,6 +350,7 @@ public class ChineseTenLogicTest {
 
     }
 
+    // This test will passs after remove the catch block in the game logic of stage 1
     @Test
     public void testStage1IllegalMoveOfWrongCollectCards() {
         assertHacker(move(wId, initialStateOfStage0CanNotCollect, claimWithWAndD));

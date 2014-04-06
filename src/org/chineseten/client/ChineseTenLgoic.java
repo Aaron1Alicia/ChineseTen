@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 
 
+
 //import java_cup.internal_error;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.chineseten.client.GameApi.Shuffle;
 import org.chineseten.client.GameApi.VerifyMove;
 import org.chineseten.client.GameApi.VerifyMoveDone;
 
+import com.google.appengine.api.prospectivesearch.ProspectiveSearchPb.SubscriptionRecord.State;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -248,14 +250,15 @@ public class ChineseTenLgoic {
       
       if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
           
-          // If it is time to end the game, we need choose the winner and shuffle the cards
-          //endGame.add(new Shuffle(getCardsInRange(0, 51)));
-          if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
-              expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor)));
-          } else {
-              expectedOperations.add(new EndGame(
-                      state.getPlayerId(turnOfColor.getOppositeColor())));
-          }
+          Color winnerColor = getWinner(state, newWCOrBC);
+          expectedOperations.add(new EndGame(state.getPlayerId(winnerColor)));
+         
+//          if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
+//              expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor)));
+//          } else {
+//              expectedOperations.add(new EndGame(
+//                      state.getPlayerId(turnOfColor.getOppositeColor())));
+//          }
          // return endGame;
       }
       return expectedOperations;
@@ -371,13 +374,10 @@ public class ChineseTenLgoic {
       
       
     if (newWCOrBC.size() + state.getOppositeCollection(turnOfColor).size() == 52) {
-    
-     if (newWCOrBC.size() > state.getOppositeCollection(turnOfColor).size()) {
-         expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor)));
-     } else {
-         expectedOperations.add(new EndGame(state.getPlayerId(turnOfColor.getOppositeColor())));
-     }
-     //return endGame;
+        
+        
+    Color winnerColor = getWinner(state, newWCOrBC);
+    expectedOperations.add(new EndGame(state.getPlayerId(winnerColor)));
  }
       
       
@@ -576,6 +576,16 @@ public class ChineseTenLgoic {
             }               
             }
         return true;
+    }
+    
+    public Color getWinner(ChineseTenState state, List<Integer> newCollection) {
+        
+      Color turnOfColor = state.getTurn();
+      if (newCollection.size() > state.getOppositeCollection(turnOfColor).size()) {
+      return turnOfColor;
+      } else {
+      return turnOfColor.getOppositeColor();
+      }
     }
 }
 
