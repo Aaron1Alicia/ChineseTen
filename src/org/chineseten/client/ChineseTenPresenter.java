@@ -93,8 +93,8 @@ public class ChineseTenPresenter {
     void flipOneCardIfThereisCardsLeftInMiddlePile(List<Integer> cardsInMiddle);   
   }
   
-  private final int wId = 41;
-  private final int bId = 42;
+//  private final int wId = 41;
+//  private final int bId = 42;
   private final int stage0 = 0;
   private final int stage1 = 1;
   private final int stage2 = 2;

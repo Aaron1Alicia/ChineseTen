@@ -211,15 +211,20 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       case STAGE_ONE:
         message += "This is stage1, please collect one card from yourarea and "
                 + "one card from the deck for which the sum of the two cards "
-                + "are ten";
+                + "are ten. If you can not find two cards that sum is ten, just"
+                + "choose one card from your area and put it onto the deck."
+                + "If it is not your turn, you can not move and you can change player on "
+                + "the bottom by using the List Box. Enjoy!";
         break;
       case STAGE_TWO:
         message += "This is stage2, please flip one card from the middle and put"
-                + "it faced up in the deck area .";
+                + "it faced up in the deck area. Enjoy!";
         break;
       case STAGE_THREE:
         message += "This is stage3, please collect two cards from the deck,"
-                + " for which the sume of the two cards are ten";
+                + " for which the sum of the two cards are ten. If you can "
+                + "not find two cards that sum is ten, just finishing collecting"
+                + "from the deck and pass your turn to the other player. Enjoy!";
 //        options.add("Probably told the truth");
 //        options.add(callCheatOption);
         break;
