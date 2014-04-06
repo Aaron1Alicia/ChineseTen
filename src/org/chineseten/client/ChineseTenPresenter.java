@@ -88,8 +88,9 @@ public class ChineseTenPresenter {
     
     void chooseNextCardInDeck(List<Card> selectedCardsInDeck, List<Card> remainingCards);
     
-    void flipOneCardIfThereisCardsLeftInMiddlePile(List<Card> selectedCardsInDeck, 
-            List<Card> remainingCards);   
+//    void flipOneCardIfThereisCardsLeftInMiddlePile(List<Card> selectedCardsInDeck, 
+//            List<Card> remainingCards);   
+    void flipOneCardIfThereisCardsLeftInMiddlePile(List<Integer> cardsInMiddle);   
   }
   
   private final int wId = 41;
@@ -127,7 +128,7 @@ public class ChineseTenPresenter {
   private int yourPlayerId;
   private List<Card> selectedCardsInHand;
   private List<Card> selectedCardsInDeck;
-  private List<Card> selectedCardsInMiddle;
+  //private List<Card> selectedCardsInMiddle;
 
   public ChineseTenPresenter(View view, Container container) {
     this.view = view;
@@ -145,7 +146,7 @@ public class ChineseTenPresenter {
         
     selectedCardsInHand = Lists.newArrayList();
     selectedCardsInDeck = Lists.newArrayList();
-    selectedCardsInMiddle = Lists.newArrayList();
+    //selectedCardsInMiddle = Lists.newArrayList();
     
     if (updateUI.getState().isEmpty()) {
       // The W player sends the initial setup move.
@@ -276,9 +277,7 @@ public class ChineseTenPresenter {
     }
   
   private void flipOneCardIfThereisCardsLeftInMiddlePile() {
-      view.flipOneCardIfThereisCardsLeftInMiddlePile(selectedCardsInMiddle,
-              chineseTenLgoic.subtract(getCardsInMiddle(), selectedCardsInMiddle));
-      
+      view.flipOneCardIfThereisCardsLeftInMiddlePile(chineseTenState.getMiddle());    
   }
 
   private void check(boolean val) {
@@ -311,15 +310,15 @@ public class ChineseTenPresenter {
       chooseNextCardInDeck();
     }
   
-  public void cardSelectedInMiddle(Card card) {
-      check(isMyTurn() && chineseTenState.getMiddle().size() > 0);
-      if (selectedCardsInMiddle.contains(card)) {
-        selectedCardsInMiddle.remove(card);
-      } else if (selectedCardsInDeck.size() == 0) {
-        selectedCardsInMiddle.add(card);
-      }
-      flipOneCardIfThereisCardsLeftInMiddlePile();
-    }
+//  public void cardSelectedInMiddle(Integer card) {
+//      check(isMyTurn() && chineseTenState.getMiddle().size() > 0);
+//      if (selectedCardsInMiddle.contains(card)) {
+//        selectedCardsInMiddle.remove(card);
+//      } else if (selectedCardsInDeck.size() == 0) {
+//        selectedCardsInMiddle.add(card);
+//      }
+//      flipOneCardIfThereisCardsLeftInMiddlePile();
+//    }
 
   /**
    * Finishes the card selection process.
@@ -332,9 +331,18 @@ public class ChineseTenPresenter {
             chineseTenLgoic.subtract(getMyCardsInDeck(), selectedCardsInDeck));
   }
   
-  public void finishedSelectingCardsInDeckForStage1() {
-      check(isMyTurn() && selectedCardsInDeck.size() < 2);
-            
+  public void finishedSelectingCardsInDeckForStage() {
+      check(isMyTurn() && selectedCardsInDeck.size() < 3);
+      if (chineseTenState.getStage() == stage2) {
+          
+          check(selectedCardsInDeck.size() == 2 || selectedCardsInDeck.size() == 0,
+                  chineseTenState.getStage());
+          finishedSelectingCardsInDeckForStage3();  
+          return;
+      }
+         
+      check(chineseTenState.getStage() == stage0 || chineseTenState.getStage() == stage3, 
+              chineseTenState.getStage());
       if (selectedCardsInDeck.size() == 1) {
           sendMatchMoveForStageOne();       
       } else if (selectedCardsInDeck.size() == 0 && selectedCardsInHand.size() == 1) {
@@ -465,14 +473,12 @@ public class ChineseTenPresenter {
               chineseTenState, operationsToSend, playerIds));      
   }
   
-  public void finishedFlipCardsForStage2() {
-      check(isMyTurn() && selectedCardsInMiddle.size() == 1);
-      
-      List<Integer> myCardIndices = chineseTenState.getMiddle();
-      Card flip = selectedCardsInMiddle.get(0);
-      
+  public void finishedFlipCardsForStage2(int index) {
+      check(isMyTurn());    
+      Integer m = chineseTenState.getMiddle().get(index);
+     // List<Integer> myCardIndices = chineseTenState.getMiddle();
       List<Integer> newDeck = Lists.newArrayList();    
-      Integer m = myCardIndices.get(getCardsInMiddle().indexOf(flip));
+      //m = myCardIndices.get(getCardsInMiddle().indexOf(flip));
       newDeck.add(m);
       
       List<Operation> flipOperation = ImmutableList.<Operation>of(

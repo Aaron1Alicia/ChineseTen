@@ -223,7 +223,7 @@ public class ChineseTenLgoic {
         check(diffD.size() == 1, lastD, lastMoveD, diffD);
         
         // Check whether sum is ten
-        //check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
         
         List<Integer> newCollection = concat(diffWorB, diffD);
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       

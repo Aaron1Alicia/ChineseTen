@@ -55,7 +55,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   @UiField
   Button claimBtnOfDeck;
   
-  //private boolean enableClicks = false;
+  private boolean enableClicksForMiddle = false;
   private boolean enableClicksForHand = false;
   private boolean enableClicksForDeck = false;
   
@@ -76,6 +76,37 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
     }
     return createImages(images, false);
   }
+  
+  private List<Image> createMiddleCards(int numOfCards) {
+      List<CardImage> images = Lists.newArrayList();
+      for (int i = 0; i < numOfCards; i++) {
+        images.add(CardImage.Factory.getBackOfCardImage());
+      }
+      return createImagesInMiddle(images, true);
+    }
+  
+  private List<Image> createImagesInMiddle(List<CardImage> images, boolean withClick) {
+      List<Image> res = Lists.newArrayList();
+      int i = 0;
+      for (CardImage img : images) {
+       // final CardImage imgFinal = img;
+        Image image = new Image(cardImageSupplier.getResource(img));
+        if (withClick) {
+            final int index = i;
+          image.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+              if (enableClicksForMiddle) {
+                presenter.finishedFlipCardsForStage2(index);
+              }
+            }
+          });
+        }
+        res.add(image);
+        i++;
+      }
+      return res;
+    }
 
   private List<Image> createCardImages(List<Card> cards, boolean withClick) {
     List<CardImage> images = Lists.newArrayList();
@@ -229,7 +260,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   @UiHandler("claimBtnOfDeck")
   void onClickClaimBtnOfDeck(ClickEvent e) {
     disableClicks();
-    presenter.finishedSelectingCardsInDeckForStage1();
+    presenter.finishedSelectingCardsInDeckForStage();
   }
 
   @Override
@@ -284,8 +315,6 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   }
   
   
-  //void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards);
-  
   public void chooseNextCardInDeck(List<Card> selectedCardsInDeck, List<Card> remainingCards) {
       //Collections.sort(selectedCardsInDeck);
       Collections.sort(remainingCards);
@@ -295,9 +324,9 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       claimBtnOfDeck.setEnabled(true);  
   }
   
-  public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Card> selectedCardsInDeck, 
-          List<Card> remainingCards) {
-      
+  public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Integer> cardsInMiddle) {
+      enableClicksForMiddle = true;
+      placeImages(middleArea, createMiddleCards(cardsInMiddle.size()));      
   }
 
 }

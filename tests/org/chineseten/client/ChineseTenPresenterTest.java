@@ -168,7 +168,7 @@ public class ChineseTenPresenterTest {
     chineseTenPresenter.cardSelectedInDeck(getCards(24, 25).get(0));
     verify(mockView).chooseNextCardInDeck(getCards(24, 25), 
             chineseTenLgoic.subtract(getCards(24, 28), getCards(24, 25)));
-    chineseTenPresenter.finishedSelectingCardsInDeckForStage1();
+    chineseTenPresenter.finishedSelectingCardsInDeckForStage();
     
     List<Operation> claimWithWAndD = ImmutableList.<Operation>of(
             new SetTurn(wId),
@@ -198,7 +198,7 @@ public class ChineseTenPresenterTest {
             chineseTenLgoic.subtract(getCards(24, 28), getCards(24, 25)));
     chineseTenPresenter.cardSelectedInDeck(getCards(24, 25).get(0));
     verify(mockView, times(2)).chooseNextCardInDeck(ImmutableList.<Card>of(), getCards(24, 28));
-    chineseTenPresenter.finishedSelectingCardsInDeckForStage1();
+    chineseTenPresenter.finishedSelectingCardsInDeckForStage();
     
     List<Operation> expected = ImmutableList.<Operation>of(
             new SetTurn(wId),
