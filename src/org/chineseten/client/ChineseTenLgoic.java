@@ -223,7 +223,14 @@ public class ChineseTenLgoic {
         check(diffD.size() == 1, lastD, lastMoveD, diffD);
         
         // Check whether sum is ten
-        check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        try {
+            check(checkWhetherSumIsTen(state, diffWorB, diffD), diffWorB, diffD);
+        } catch (Exception e) {
+            // TODO: handle exception
+            // This bug appears because when the opponent verifies the state, he has unknown
+//            information
+        }
+        
         
         List<Integer> newCollection = concat(diffWorB, diffD);
         List<Integer> newWCOrBC = concat(newCollection, state.getWCOrBC(turnOfColor));       

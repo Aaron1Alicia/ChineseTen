@@ -310,15 +310,6 @@ public class ChineseTenPresenter {
       chooseNextCardInDeck();
     }
   
-//  public void cardSelectedInMiddle(Integer card) {
-//      check(isMyTurn() && chineseTenState.getMiddle().size() > 0);
-//      if (selectedCardsInMiddle.contains(card)) {
-//        selectedCardsInMiddle.remove(card);
-//      } else if (selectedCardsInDeck.size() == 0) {
-//        selectedCardsInMiddle.add(card);
-//      }
-//      flipOneCardIfThereisCardsLeftInMiddlePile();
-//    }
 
   /**
    * Finishes the card selection process.
@@ -366,11 +357,20 @@ public class ChineseTenPresenter {
       List<Integer> newWC = Lists.newArrayList();
       
       Integer w = myCardIndices.get(getMyCardsInHand().indexOf(wToRomove));
+      Integer d = chineseTenState.getDeck().get(getMyCardsInDeck().indexOf(dToRomove));
+      
+      if (!checkWhetherSumIsTen(chineseTenState, (int) d, (int) w)) {
+          fallBack();
+          return;
+      }
+      
+      
+      
       List<Integer> myNewCardIndices = Lists.newArrayList();
       myNewCardIndices.addAll(myCardIndices);
       myNewCardIndices.remove(w);
       
-      Integer d = chineseTenState.getDeck().get(getMyCardsInDeck().indexOf(dToRomove));
+      
       List<Integer> newDeck = Lists.newArrayList();
       newDeck.addAll(chineseTenState.getDeck());
       newDeck.remove(d);
@@ -447,6 +447,10 @@ public class ChineseTenPresenter {
       
       newD.add(d1);
       newD.add(d2);    
+      if (!checkWhetherSumIsTen(chineseTenState, (int) d1, (int) d2)) {
+          fallBackForStage3();
+          return;
+      }
       
       List<Operation> operationsToSend = ImmutableList.<Operation>of(
               new SetTurn(chineseTenState.getPlayerId(myColor.get().getOppositeColor())),
@@ -520,6 +524,51 @@ public class ChineseTenPresenter {
           throw new RuntimeException("We have a hacker! debugArguments="
                   + Arrays.toString(debugArguments));
       }
+  }
+  
+  /** Check whether the sum of collected cards is ten or other cases that the rule allows.*/
+  boolean checkWhetherSumIsTen(ChineseTenState state, int a, int b) {
+//      check(a.size() == 1, a);
+//      check(b.size() == 1, b);
+      //int aValue = a.get(0);
+      //int bValue = b.get(0);
+      
+      int aValue = state.getCards().get(a).get().getRank().getNumberfromRank();
+      int bValue = state.getCards().get(b).get().getRank().getNumberfromRank();
+      
+      if (aValue + bValue == 10) {
+          return true; 
+      } else if (aValue == 10 && bValue == 10) {
+          return true;
+      } else if (aValue == 11 && bValue == 11) {
+          return true;
+      } else if (aValue == 12 && bValue == 12) {
+          return true;
+      } else if (aValue == 13 && bValue == 13) {
+          return true;
+      } else {
+          return false;
+      }        
+  }
+  
+  public void fallBack() {
+      int numberOfOpponentCards = chineseTenState.getWhiteOrBlack(opponentColor).size();
+      int numberOfCardsInMiddlePile = chineseTenState.getMiddle().size();
+      
+      view.setPlayerState(numberOfOpponentCards, numberOfCardsInMiddlePile, getMyCardsInHand(), 
+              getMyCardsInCollection(), getMyCardsInDeck(), getOpponentCardsInCollection(), 
+              ChineseTenMessage.STAGE_ONE);
+      chooseNextCardInHand();
+  }
+  
+  public void fallBackForStage3() {
+      int numberOfOpponentCards = chineseTenState.getWhiteOrBlack(opponentColor).size();
+      int numberOfCardsInMiddlePile = chineseTenState.getMiddle().size();
+      
+      view.setPlayerState(numberOfOpponentCards, numberOfCardsInMiddlePile, getMyCardsInHand(), 
+              getMyCardsInCollection(), getMyCardsInDeck(), getOpponentCardsInCollection(), 
+              ChineseTenMessage.STAGE_THREE);
+      chooseNextCardInDeck();    
   }
   
 }

@@ -292,7 +292,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       placeImages(deckArea, createCardImagesInDeck(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
-      //alertStageMessage(chineseTenMessage);
+      alertStageMessage(chineseTenMessage);
       disableClicks();     
   }
 
