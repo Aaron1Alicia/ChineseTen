@@ -21,7 +21,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 public class ChineseTenEntryPoint implements EntryPoint {
     
   //IteratingPlayerContainer container;
-    GameApi.ContainerConnector container;
+  GameApi.ContainerConnector container;
   ChineseTenPresenter chineseTenPresenter;
 
   @Override

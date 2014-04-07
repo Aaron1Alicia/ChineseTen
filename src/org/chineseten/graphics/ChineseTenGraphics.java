@@ -401,33 +401,26 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       }
   }
   
-  private void initializeDragAndDorp(){
-      DND.setPixelSize(300, 300);
-      DND.setStyleName("dnd-started-blue");
-      dropMe.setStyleName("dnd-default");
+  private void initializeDragAndDorp() {
       dragController = new PickupDragController(DND, true);
       dragController.setBehaviorConstrainedToBoundaryPanel(true);
       dragController.setBehaviorMultipleSelection(true);
-      dropController = new SimpleDropController(dropMe){
+      dropController = new SimpleDropController(dropMe) {
           @Override
-          public void onDrop(DragContext context){
+          public void onDrop(DragContext context) {
               super.onDrop(context);
-              dropMe.setStyleName("dnd-after-drop");
               dropMe.getElement().setInnerText("Successfully dropped, Enjoy!");
           }
 
           @Override
-          public void onEnter(DragContext context){
+          public void onEnter(DragContext context) {
               super.onEnter(context);
-              dropMe.setStyleName("dnd-enter");
               dropMe.getElement().setInnerText("Enter area, please drop!");
           }
 
           @Override
-          public void onLeave(DragContext context){
+          public void onLeave(DragContext context) {
               super.onEnter(context);
-              dropMe.setStyleName("dnd-default"); 
-              dropMe.getElement().setInnerText("Oops, you have Left dropping area. ");
           }
       };
       dragController.registerDropController(dropController);
