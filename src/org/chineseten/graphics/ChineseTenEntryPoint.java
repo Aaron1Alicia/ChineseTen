@@ -19,7 +19,9 @@ import com.google.gwt.user.client.ui.RootPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class ChineseTenEntryPoint implements EntryPoint {
-  IteratingPlayerContainer container;
+    
+  //IteratingPlayerContainer container;
+    GameApi.ContainerConnector container;
   ChineseTenPresenter chineseTenPresenter;
 
   @Override
@@ -35,28 +37,39 @@ public class ChineseTenEntryPoint implements EntryPoint {
         chineseTenPresenter.updateUI(updateUI);
       }
     };
-    container = new IteratingPlayerContainer(game, 2);
+    
+    
+//    container = new IteratingPlayerContainer(game, 2);
+//    ChineseTenGraphics chineseTenGraphics = new ChineseTenGraphics();
+//    chineseTenPresenter =
+//        new ChineseTenPresenter(chineseTenGraphics, container);
+//    final ListBox playerSelect = new ListBox();
+//    playerSelect.addItem("WhitePlayer");
+//    playerSelect.addItem("BlackPlayer");
+//    playerSelect.addItem("Viewer");
+//    playerSelect.addChangeHandler(new ChangeHandler() {
+//      @Override
+//      public void onChange(ChangeEvent event) {
+//        int selectedIndex = playerSelect.getSelectedIndex();
+//        String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
+//            : container.getPlayerIds().get(selectedIndex);
+//        container.updateUi(playerId);
+//      }
+//    });
+//    FlowPanel flowPanel = new FlowPanel();
+//    flowPanel.add(chineseTenGraphics);
+//    flowPanel.add(playerSelect);
+//    RootPanel.get("mainDiv").add(flowPanel);
+//    container.sendGameReady();
+//    container.updateUi(container.getPlayerIds().get(0));
+    
+    container = new GameApi.ContainerConnector(game);
     ChineseTenGraphics chineseTenGraphics = new ChineseTenGraphics();
     chineseTenPresenter =
         new ChineseTenPresenter(chineseTenGraphics, container);
-    final ListBox playerSelect = new ListBox();
-    playerSelect.addItem("WhitePlayer");
-    playerSelect.addItem("BlackPlayer");
-    playerSelect.addItem("Viewer");
-    playerSelect.addChangeHandler(new ChangeHandler() {
-      @Override
-      public void onChange(ChangeEvent event) {
-        int selectedIndex = playerSelect.getSelectedIndex();
-        String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
-            : container.getPlayerIds().get(selectedIndex);
-        container.updateUi(playerId);
-      }
-    });
-    FlowPanel flowPanel = new FlowPanel();
-    flowPanel.add(chineseTenGraphics);
-    flowPanel.add(playerSelect);
-    RootPanel.get("mainDiv").add(flowPanel);
+    
+    RootPanel.get("mainDiv").add(chineseTenGraphics);
     container.sendGameReady();
-    container.updateUi(container.getPlayerIds().get(0));
+    
   }
 }

@@ -277,7 +277,8 @@ public class ChineseTenLgoic {
         check(diffD.size() == 1, lastD, lastMoveD, diffD);
         
         // Check diffWorB equals diffD
-        check(diffWorB.get(0) == diffD.get(0), diffWorB, diffD);      
+        //check(diffWorB.get(0) == diffD.get(0), diffWorB, diffD);  
+        check(diffWorB.get(0).equals(diffD.get(0)), diffWorB, diffD); 
 
       // If Collect at stage1  then the format must be:
 //        new SetTurn(state.getPlayerId(turnOfColor)),
