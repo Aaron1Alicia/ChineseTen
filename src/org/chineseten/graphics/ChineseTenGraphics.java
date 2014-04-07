@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dom.client.AudioElement;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
@@ -27,12 +28,20 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.allen_sauer.gwt.dnd.client.DragContext;
+import com.allen_sauer.gwt.dnd.client.DragHandler;
+import com.allen_sauer.gwt.dnd.client.PickupDragController;
+import com.allen_sauer.gwt.dnd.client.drop.AbsolutePositionDropController;
+import com.allen_sauer.gwt.dnd.client.drop.DropController;
+import com.allen_sauer.gwt.dnd.client.drop.SimpleDropController;
 
 /**
  * Graphics for the game of cheat.
@@ -60,6 +69,13 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   @UiField
   Button claimBtnOfDeck;
   
+  @UiField
+  AbsolutePanel DND;
+  @UiField
+  Label dragMe;
+  @UiField
+  Label dropMe;
+  
   private boolean enableClicksForMiddle = false;
   private boolean enableClicksForHand = false;
   private boolean enableClicksForDeck = false;
@@ -73,6 +89,8 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private Timer myTimer;
   private FadeAnimation fadeAnimation;
   private Audio audio;
+  private PickupDragController dragController;
+  private SimpleDropController dropController;
 
   public ChineseTenGraphics() {
     CardImages cardImages = GWT.create(CardImages.class);
@@ -87,6 +105,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
                   audio.addSource(gameSounds.cardCapturedWav().getSafeUri().
                           asString(), AudioElement.TYPE_WAV);
               }
+    initializeDragAndDorp();
   }
 
   private List<Image> createBackCards(int numOfCards) {
@@ -155,18 +174,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private List<Image> createImages(List<CardImage> images, boolean withClick) {
     List<Image> res = Lists.newArrayList();
     for (CardImage img : images) {
-     // final CardImage imgFinal = img;
       Image image = new Image(cardImageSupplier.getResource(img));
-//      if (withClick) {
-//        image.addClickHandler(new ClickHandler() {
-//          @Override
-//          public void onClick(ClickEvent event) {
-//            if (enableClicks) {
-//              presenter.cardSelected(imgFinal.card);
-//            }
-//          }
-//        });
-//      }
       res.add(image);
     }
     return res;
@@ -391,6 +399,39 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
               presenter.cardSelectedInHand(imgFinal.card);
           }
       }
+  }
+  
+  private void initializeDragAndDorp(){
+      DND.setPixelSize(300, 300);
+      DND.setStyleName("dnd-started-blue");
+      dropMe.setStyleName("dnd-default");
+      dragController = new PickupDragController(DND, true);
+      dragController.setBehaviorConstrainedToBoundaryPanel(true);
+      dragController.setBehaviorMultipleSelection(true);
+      dropController = new SimpleDropController(dropMe){
+          @Override
+          public void onDrop(DragContext context){
+              super.onDrop(context);
+              dropMe.setStyleName("dnd-after-drop");
+              dropMe.getElement().setInnerText("Successfully dropped, Enjoy!");
+          }
+
+          @Override
+          public void onEnter(DragContext context){
+              super.onEnter(context);
+              dropMe.setStyleName("dnd-enter");
+              dropMe.getElement().setInnerText("Enter area, please drop!");
+          }
+
+          @Override
+          public void onLeave(DragContext context){
+              super.onEnter(context);
+              dropMe.setStyleName("dnd-default"); 
+              dropMe.getElement().setInnerText("Oops, you have Left dropping area. ");
+          }
+      };
+      dragController.registerDropController(dropController);
+      dragController.makeDraggable(dragMe);
   }
 
 }

@@ -4,7 +4,13 @@ import com.google.gwt.animation.client.Animation;
 import com.google.gwt.media.client.Audio;
 import com.google.gwt.user.client.ui.Image;
 
-public class FadeAnimation extends Animation{
+
+/*
+ * This class is used to form a fading animation,
+ * The code is from internet. The source is as follows:
+ * http://map-notes.blogspot.com/2012/11/fade-animation.html
+ */
+public class FadeAnimation extends Animation {
 
     private Image image;
     private double opacityIncrement;
@@ -12,7 +18,7 @@ public class FadeAnimation extends Animation{
     private double baseOpacity;
     private Audio soundEfx;
     
-    public FadeAnimation(Image image, Audio soundEfx){
+    public FadeAnimation(Image image, Audio soundEfx) {
         this.image = image;
         this.soundEfx = soundEfx;
     }
@@ -25,26 +31,28 @@ public class FadeAnimation extends Animation{
     @Override
     protected void onComplete() {
         super.onComplete();
-        if(soundEfx!=null){
+        if (soundEfx != null) {
             soundEfx.play();
         }
         image.getElement().getStyle().setOpacity(targetOpacity);
         
     }
     
-    public void fade(int duration, double targetOpacity){
-        if(targetOpacity>1.0) targetOpacity=1.0;
-        if(targetOpacity<0.0) targetOpacity=0.0;
+    public void fade(int duration, double targetOpacity) {
+        if (targetOpacity > 1.0) {
+            targetOpacity = 1.0;
+        }
+        if (targetOpacity < 0.0) {
+            targetOpacity = 0.0;
+        }
         this.targetOpacity = targetOpacity;
         try {
             baseOpacity = 0.0;
-            opacityIncrement = targetOpacity-baseOpacity;
+            opacityIncrement = targetOpacity - baseOpacity;
             run(duration);
         } catch (NumberFormatException e) {
             onComplete();
         }
     }
-
-
-    
+  
 }
