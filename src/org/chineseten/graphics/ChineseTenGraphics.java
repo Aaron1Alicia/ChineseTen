@@ -17,11 +17,16 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gwt.core.shared.GWT;
+import com.google.gwt.dom.client.AudioElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.google.gwt.media.client.Audio;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -61,12 +66,27 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   
   private final CardImageSupplier cardImageSupplier;
   private ChineseTenPresenter presenter;
+  
+  /*
+   * Below are defined for animations
+   */
+  private Timer myTimer;
+  private FadeAnimation fadeAnimation;
+  private Audio audio;
 
   public ChineseTenGraphics() {
     CardImages cardImages = GWT.create(CardImages.class);
     this.cardImageSupplier = new CardImageSupplier(cardImages);
     ChineseTenGraphicsUiBinder uiBinder = GWT.create(ChineseTenGraphicsUiBinder.class);
     initWidget(uiBinder.createAndBindUi(this));
+    GameSounds gameSounds = GWT.create(GameSounds.class);
+    if (Audio.isSupported()) {
+                  audio = Audio.createIfSupported();
+                  audio.addSource(gameSounds.cardCapturedMp3().getSafeUri().
+                          asString(), AudioElement.TYPE_MP3);
+                  audio.addSource(gameSounds.cardCapturedWav().getSafeUri().
+                          asString(), AudioElement.TYPE_WAV);
+              }
   }
 
   private List<Image> createBackCards(int numOfCards) {
@@ -152,20 +172,41 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
     return res;
   }
   
+//  private List<Image> createImagesInHand(List<CardImage> images, boolean withClick) {
+//      List<Image> res = Lists.newArrayList();
+//      for (CardImage img : images) {
+//        final CardImage imgFinal = img;
+//        Image image = new Image(cardImageSupplier.getResource(img));
+//        if (withClick) {
+//          image.addClickHandler(new ClickHandler() {
+//            @Override
+//            public void onClick(ClickEvent event) {
+//              if (enableClicksForHand) {
+//                presenter.cardSelectedInHand(imgFinal.card);
+//              }
+//            }
+//          });
+//        }
+//        res.add(image);
+//      }
+//      return res;
+//    }
+  
   private List<Image> createImagesInHand(List<CardImage> images, boolean withClick) {
       List<Image> res = Lists.newArrayList();
       for (CardImage img : images) {
         final CardImage imgFinal = img;
         Image image = new Image(cardImageSupplier.getResource(img));
         if (withClick) {
-          image.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent event) {
-              if (enableClicksForHand) {
-                presenter.cardSelectedInHand(imgFinal.card);
-              }
-            }
-          });
+            image.addClickHandler(new AnimationHandler(image, imgFinal));
+            fadeAnimation = new FadeAnimation(image, audio);
+            image.addDomHandler(new MouseOverHandler() {
+                
+                @Override
+                public void onMouseOver(MouseOverEvent event) {
+                 fadeAnimation.fade(1500, 1.0);
+                }
+               }, MouseOverEvent.getType());
         }
         res.add(image);
       }
@@ -332,6 +373,24 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Integer> cardsInMiddle) {
       enableClicksForMiddle = true;
       placeImages(middleArea, createMiddleCards(cardsInMiddle.size()));      
+  }
+  
+  private class AnimationHandler implements ClickHandler {
+      private Image image;
+      private CardImage imgFinal;
+
+      public AnimationHandler(Image image, CardImage imgFinal) {
+          this.image = image;
+          this.imgFinal = imgFinal;
+      }
+
+      
+      @Override
+      public void onClick(ClickEvent event) {
+          if (enableClicksForHand) {            
+              presenter.cardSelectedInHand(imgFinal.card);
+          }
+      }
   }
 
 }
