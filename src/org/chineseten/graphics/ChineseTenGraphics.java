@@ -69,12 +69,12 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   @UiField
   Button claimBtnOfDeck;
   
-  @UiField
-  AbsolutePanel DND;
-  @UiField
-  Label dragMe;
-  @UiField
-  Label dropMe;
+//  @UiField
+//  AbsolutePanel DND;
+//  @UiField
+//  Label dragMe;
+//  @UiField
+//  Label dropMe;
   
   private boolean enableClicksForMiddle = false;
   private boolean enableClicksForHand = false;
@@ -105,7 +105,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
                   audio.addSource(gameSounds.cardCapturedWav().getSafeUri().
                           asString(), AudioElement.TYPE_WAV);
               }
-    initializeDragAndDorp();
+//    initializeDragAndDorp();
   }
 
   private List<Image> createBackCards(int numOfCards) {
@@ -346,7 +346,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       placeImages(deckArea, createCardImagesInDeck(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
-      alertStageMessage(chineseTenMessage);
+     // alertStageMessage(chineseTenMessage);
       disableClicks();     
   }
 
@@ -401,30 +401,30 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       }
   }
   
-  private void initializeDragAndDorp() {
-      dragController = new PickupDragController(DND, true);
-      dragController.setBehaviorConstrainedToBoundaryPanel(true);
-      dragController.setBehaviorMultipleSelection(true);
-      dropController = new SimpleDropController(dropMe) {
-          @Override
-          public void onDrop(DragContext context) {
-              super.onDrop(context);
-              dropMe.getElement().setInnerText("Successfully dropped, Enjoy!");
-          }
-
-          @Override
-          public void onEnter(DragContext context) {
-              super.onEnter(context);
-              dropMe.getElement().setInnerText("Enter area, please drop!");
-          }
-
-          @Override
-          public void onLeave(DragContext context) {
-              super.onEnter(context);
-          }
-      };
-      dragController.registerDropController(dropController);
-      dragController.makeDraggable(dragMe);
-  }
+//  private void initializeDragAndDorp() {
+//      dragController = new PickupDragController(DND, true);
+//      dragController.setBehaviorConstrainedToBoundaryPanel(true);
+//      dragController.setBehaviorMultipleSelection(true);
+//      dropController = new SimpleDropController(dropMe) {
+//          @Override
+//          public void onDrop(DragContext context) {
+//              super.onDrop(context);
+//              dropMe.getElement().setInnerText("Successfully dropped, Enjoy!");
+//          }
+//
+//          @Override
+//          public void onEnter(DragContext context) {
+//              super.onEnter(context);
+//              dropMe.getElement().setInnerText("Enter area, please drop!");
+//          }
+//
+//          @Override
+//          public void onLeave(DragContext context) {
+//              super.onEnter(context);
+//          }
+//      };
+//      dragController.registerDropController(dropController);
+//      dragController.makeDraggable(dragMe);
+//  }
 
 }

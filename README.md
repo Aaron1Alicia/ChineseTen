@@ -2,7 +2,7 @@ ChineseTen
 ==========
 This is a social two-player card game.
 The game website is here!
-http://2.chineseten10.appspot.com/ChineseTenGame.html
+http://4.chineseten10.appspot.com/ChineseTenGame.html
 If you need to use the emulator, please go to http://smg-gwt-emulator.appspot.com/GwtEmulator.html
 and use http://3.chineseten10.appspot.com/ChineseTenGame.html
 

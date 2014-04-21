@@ -15,10 +15,10 @@
       <g:Button ui:field="claimBtnOfDeck" text="Finish selecting cards in deck"/>
     </g:HorizontalPanel>
     <g:HorizontalPanel width="120" height="100px" ui:field="selectedArea"/>
-    <g:AbsolutePanel ui:field="DND">
+   <!--  <g:AbsolutePanel ui:field="DND">
       <g:Label ui:field="dragMe">Drag Me</g:Label>
       <g:HorizontalPanel width="120" height="100px" ui:field="CrossArea"/>
       <g:Label width="120" height="100px" ui:field="dropMe">Drop Me</g:Label>
-    </g:AbsolutePanel>
+    </g:AbsolutePanel> -->
   </g:VerticalPanel>
 </ui:UiBinder> 
