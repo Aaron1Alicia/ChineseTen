@@ -251,6 +251,17 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       panel.add(imageContainer);
     }
   }
+  
+  private void placeImagesForEasyChoose(HorizontalPanel panel, List<Image> images) {
+      panel.clear();
+      Image last = images.isEmpty() ? null : images.get(images.size() - 1);
+      for (Image image : images) {
+        FlowPanel imageContainer = new FlowPanel();
+        imageContainer.setStyleName(image != last ? "imgMiddleContainer" : "imgContainer");
+        imageContainer.add(image);
+        panel.add(imageContainer);
+      }
+    }
 
   private void alertStageMessage(ChineseTenMessage chineseTenMessage) {
     String message = "";
@@ -339,11 +350,11 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       Collections.sort(myCardsInCollection);
       Collections.sort(cardsInDeck);
       Collections.sort(cardsOfOpponentInCollection);
-      placeImages(playerArea, createCardImagesInHand(myCardsInHand, false));
+      placeImagesForEasyChoose(playerArea, createCardImagesInHand(myCardsInHand, false));
       placeImages(selectedArea, ImmutableList.<Image>of());
       placeImages(opponentArea, createBackCards(numberOfOpponentCards));
       placeImages(middleArea, createBackCards(numberOfCardsInMiddlePile));
-      placeImages(deckArea, createCardImagesInDeck(cardsInDeck, false));
+      placeImagesForEasyChoose(deckArea, createCardImagesInDeck(cardsInDeck, false));
       placeImages(opponentCollectionArea, createCardImages(cardsOfOpponentInCollection, false));
       placeImages(playerCollecionArea, createCardImages(myCardsInCollection, false));
      // alertStageMessage(chineseTenMessage);
@@ -363,7 +374,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       
     Collections.sort(remainingCards);
     enableClicksForHand = true;
-    placeImages(playerArea, createCardImagesInHand(remainingCards, true));
+    placeImagesForEasyChoose(playerArea, createCardImagesInHand(remainingCards, true));
     placeImages(selectedArea, createCardImagesInHand(selectedCardsInHand, true));
     claimBtn.setEnabled(!selectedCardsInHand.isEmpty());
   }
@@ -373,7 +384,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
       //Collections.sort(selectedCardsInDeck);
       Collections.sort(remainingCards);
       enableClicksForDeck = true;
-      placeImages(deckArea, createCardImagesInDeck(remainingCards, true));
+      placeImagesForEasyChoose(deckArea, createCardImagesInDeck(remainingCards, true));
       placeImages(selectedArea, createCardImagesInDeck(selectedCardsInDeck, true));
       claimBtnOfDeck.setEnabled(true);  
   }
