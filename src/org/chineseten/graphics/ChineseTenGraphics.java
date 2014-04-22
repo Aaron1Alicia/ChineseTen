@@ -23,6 +23,8 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseOverEvent;
 import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.google.gwt.event.dom.client.TouchStartEvent;
+import com.google.gwt.event.dom.client.TouchStartHandler;
 import com.google.gwt.media.client.Audio;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -180,25 +182,6 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
     return res;
   }
   
-//  private List<Image> createImagesInHand(List<CardImage> images, boolean withClick) {
-//      List<Image> res = Lists.newArrayList();
-//      for (CardImage img : images) {
-//        final CardImage imgFinal = img;
-//        Image image = new Image(cardImageSupplier.getResource(img));
-//        if (withClick) {
-//          image.addClickHandler(new ClickHandler() {
-//            @Override
-//            public void onClick(ClickEvent event) {
-//              if (enableClicksForHand) {
-//                presenter.cardSelectedInHand(imgFinal.card);
-//              }
-//            }
-//          });
-//        }
-//        res.add(image);
-//      }
-//      return res;
-//    }
   
   private List<Image> createImagesInHand(List<CardImage> images, boolean withClick) {
       List<Image> res = Lists.newArrayList();
@@ -208,13 +191,22 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
         if (withClick) {
             image.addClickHandler(new AnimationHandler(image, imgFinal));
             fadeAnimation = new FadeAnimation(image, audio);
-            image.addDomHandler(new MouseOverHandler() {
-                
+//            image.addDomHandler(new MouseOverHandler() {
+//                
+//                @Override
+//                public void onMouseOver(MouseOverEvent event) {
+//                 fadeAnimation.fade(1500, 1.0);
+//                }
+//               }, MouseOverEvent.getType());
+            image.addTouchStartHandler(new TouchStartHandler() {
+
                 @Override
-                public void onMouseOver(MouseOverEvent event) {
-                 fadeAnimation.fade(1500, 1.0);
+                public void onTouchStart(TouchStartEvent event) {
+                    // TODO Auto-generated method stub
+                    fadeAnimation.fade(1500, 1.0);         
                 }
-               }, MouseOverEvent.getType());
+  
+            });
         }
         res.add(image);
       }
