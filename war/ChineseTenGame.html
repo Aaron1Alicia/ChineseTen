@@ -23,10 +23,18 @@
     height: 97px;
   }
     </style>
-    <script>
+
+  </head>
+  
+  
+  <body>
+    <!-- <div id="mainDiv" width="500" height="800" ></div> -->
+     <div id="mainDiv" ></div> 
+    
+        <script>
 function scaleBody() {
-  var myGameWidth = 1650;
-  var myGameHeight = 1100;
+  var myGameWidth = 500;
+  var myGameHeight = 700;
   var scaleX = window.innerWidth / myGameWidth;
   var scaleY = window.innerHeight / myGameHeight;
   var scale = Math.min(scaleX, scaleY);
@@ -48,8 +56,5 @@ window.onorientationchange = scaleBody;
 document.addEventListener("orientationchange", scaleBody);
 scaleBody();
 </script>
-  </head>
-  <body>
-    <div id="mainDiv" width="500" height="800" ></div>
   </body>
 </html>
