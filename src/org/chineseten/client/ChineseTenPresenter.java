@@ -181,8 +181,10 @@ public class ChineseTenPresenter {
             List<Integer> selectionByAI=ai.getAiOperationsForStage1();
             ImmutableList<Optional<Card>> cardsForAI = chineseTenState.getCards();
             if(selectionByAI.size()==2){
-                selectedCardsInHand.add(cardsForAI.get(selectionByAI.get(0)).get());
-                selectedCardsInDeck.add(cardsForAI.get(selectionByAI.get(1)).get());
+                cardSelectedInHand(cardsForAI.get(selectionByAI.get(0)).get());
+                cardSelectedInDeck(cardsForAI.get(selectionByAI.get(1)).get());
+                //selectedCardsInHand.add(cardsForAI.get(selectionByAI.get(0)).get());
+                //selectedCardsInDeck.add(cardsForAI.get(selectionByAI.get(1)).get());
                 finishedSelectingCardsInDeckForStage();
             }else if(selectionByAI.size()==0){
                 List<Card> aiCardsInhand = getMyCardsInHand();
