@@ -3,6 +3,8 @@ package org.chineseten.client;
 import java.util.Arrays;
 import java.util.List;
 
+import java_cup.internal_error;
+
 import org.game_api.GameApi.Container;
 import org.game_api.GameApi.Operation;
 import org.game_api.GameApi.Set;
@@ -169,6 +171,20 @@ public class ChineseTenPresenter {
     }
     if (updateUI.isAiPlayer()) {
       // TODO: implement AI in a later HW!
+        int stage = chineseTenState.getStage();
+        if (stage0 == stage || stage3 == stage) {
+            List<Card> aiCardsInhand = getMyCardsInHand();
+            selectedCardsInHand.add(aiCardsInhand.get(0));
+            finishedSelectingCardsInDeckForStage();
+            
+        } else if(stage1 == stage) {
+            //List<Card> aiCardsInMiddle = getCardsInMiddle();
+            finishedFlipCardsForStage2(0);
+        } else if(stage2 == stage) {
+            finishedSelectingCardsInDeckForStage();
+        } else {
+            throw new RuntimeException();
+        }
       //container.sendMakeMove(..);
       return;
     }
