@@ -5,6 +5,7 @@ import java.util.List;
 
 import java_cup.internal_error;
 
+import org.chineseten.ai.SimpleAi;
 import org.game_api.GameApi.Container;
 import org.game_api.GameApi.Operation;
 import org.game_api.GameApi.Set;
@@ -171,11 +172,31 @@ public class ChineseTenPresenter {
     }
     if (updateUI.isAiPlayer()) {
       // TODO: implement AI in a later HW!
+        SimpleAi ai = new SimpleAi(chineseTenState, myColor);
+        
+        
         int stage = chineseTenState.getStage();
         if (stage0 == stage || stage3 == stage) {
-            List<Card> aiCardsInhand = getMyCardsInHand();
-            selectedCardsInHand.add(aiCardsInhand.get(0));
-            finishedSelectingCardsInDeckForStage();
+            
+            List<Integer> selectionByAI=ai.getAiOperationsForStage1();
+            ImmutableList<Optional<Card>> cardsForAI = chineseTenState.getCards();
+            if(selectionByAI.size()==2){
+                selectedCardsInHand.add(cardsForAI.get(selectionByAI.get(0)).get());
+                selectedCardsInDeck.add(cardsForAI.get(selectionByAI.get(1)).get());
+                finishedSelectingCardsInDeckForStage();
+            }else if(selectionByAI.size()==0){
+                List<Card> aiCardsInhand = getMyCardsInHand();
+                selectedCardsInHand.add(aiCardsInhand.get(0));
+                finishedSelectingCardsInDeckForStage();
+                
+            }
+            
+            
+            //For stupid ai
+//            List<Card> aiCardsInhand = getMyCardsInHand();
+//            selectedCardsInHand.add(aiCardsInhand.get(0));
+//            finishedSelectingCardsInDeckForStage();
+            //For stupid ai
             
         } else if(stage1 == stage) {
             //List<Card> aiCardsInMiddle = getCardsInMiddle();
