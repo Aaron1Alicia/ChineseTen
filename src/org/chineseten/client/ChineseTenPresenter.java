@@ -7,6 +7,7 @@ import java_cup.internal_error;
 
 import org.chineseten.ai.SimpleAi;
 import org.game_api.GameApi.Container;
+import org.game_api.GameApi.EndGame;
 import org.game_api.GameApi.Operation;
 import org.game_api.GameApi.Set;
 import org.game_api.GameApi.SetTurn;
@@ -412,15 +413,24 @@ public class ChineseTenPresenter {
       newWC.add(w);
       newWC.add(d);  
       
+      List<Integer> newWCOrBC = concat(newWC, chineseTenState.getWCOrBC(myColor.get()));
+      
       List<Operation> operationsToSend = ImmutableList.<Operation>of(
               new SetTurn(yourPlayerId),
               new Set(STAGE, stage1),
               new Set(CLAIM, match),
               new Set(myColor.get().name(), myNewCardIndices),
               new Set(myColor.get().name() + "C", 
-                      concat(newWC, chineseTenState.getWCOrBC(myColor.get()))),
+                      newWCOrBC),
               new Set(D, newDeck),
               new SetVisibility(new String(C + w))); 
+      
+ if (newWCOrBC.size() + chineseTenState.getOppositeCollection(myColor.get()).size() == 52) {
+          
+          
+          Color winnerColor = chineseTenLgoic.getWinner(chineseTenState, newWCOrBC);
+          operationsToSend.add(new EndGame(chineseTenState.getPlayerId(winnerColor)));
+      }
       
       //container.sendMakeMove(operationsToSend);
       container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage1(
@@ -486,13 +496,24 @@ public class ChineseTenPresenter {
           return;
       }
       
+      List<Integer> newWCOrBC = chineseTenLgoic.concat(newD, chineseTenState.getWCOrBC(myColor.get()));
+      
       List<Operation> operationsToSend = ImmutableList.<Operation>of(
               new SetTurn(chineseTenState.getPlayerId(myColor.get().getOppositeColor())),
               new Set(STAGE, stage3),
               new Set(CLAIM, match),
               new Set(myColor.get().name() + "C", 
-                      chineseTenLgoic.concat(newD, chineseTenState.getWCOrBC(myColor.get()))),
+                      newWCOrBC),
               new Set(D, chineseTenLgoic.subtract(chineseTenState.getDeck(), newD)));
+      
+      
+      
+      if (newWCOrBC.size() + chineseTenState.getOppositeCollection(myColor.get()).size() == 52) {
+          
+          
+          Color winnerColor = chineseTenLgoic.getWinner(chineseTenState, newWCOrBC);
+          operationsToSend.add(new EndGame(chineseTenState.getPlayerId(winnerColor)));
+      }
       
       //container.sendMakeMove(claimWithWAndD);
       container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage3(
