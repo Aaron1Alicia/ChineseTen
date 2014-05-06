@@ -83,7 +83,7 @@ public class ChineseTenPresenter {
         List<Card> cardsInDeck, List<Card> cardsOfOpponentInCollection,
         ChineseTenMessage chineseTenMessage);
 
-    void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards);
+    void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards, int numberOfMyCards);
     
     void chooseNextCardInDeck(List<Card> selectedCardsInDeck, List<Card> remainingCards);
     
@@ -179,6 +179,12 @@ public class ChineseTenPresenter {
         int stage = chineseTenState.getStage();
         if (stage0 == stage || stage3 == stage) {
             
+            List<Integer> aiCardsInhandIndices = chineseTenState.getWhiteOrBlack(myColor.get());
+            if(aiCardsInhandIndices.size()==0){
+                finishedSelectingCardsInDeckForStage();
+                return;
+            }
+            
             List<Integer> selectionByAI=ai.getAiOperationsForStage1();
             ImmutableList<Optional<Card>> cardsForAI = chineseTenState.getCards();
             if(selectionByAI.size()==2){
@@ -188,22 +194,21 @@ public class ChineseTenPresenter {
                 //selectedCardsInDeck.add(cardsForAI.get(selectionByAI.get(1)).get());
                 finishedSelectingCardsInDeckForStage();
             }else if(selectionByAI.size()==0){
-                List<Card> aiCardsInhand = getMyCardsInHand();
-                selectedCardsInHand.add(aiCardsInhand.get(0));
-                finishedSelectingCardsInDeckForStage();
                 
+                    List<Card> aiCardsInhand = getMyCardsInHand();
+                    selectedCardsInHand.add(aiCardsInhand.get(0));
+                    finishedSelectingCardsInDeckForStage();
+    
             }
-            
-            
-            //For stupid ai
-//            List<Card> aiCardsInhand = getMyCardsInHand();
-//            selectedCardsInHand.add(aiCardsInhand.get(0));
-//            finishedSelectingCardsInDeckForStage();
-            //For stupid ai
             
         } else if(stage1 == stage) {
             //List<Card> aiCardsInMiddle = getCardsInMiddle();
-            finishedFlipCardsForStage2(0);
+            if(chineseTenState.getMiddle().size()==0){
+                finishedFlipCardsForStage2(-1);
+            }else {
+                finishedFlipCardsForStage2(0);
+            }
+            
         } else if(stage2 == stage) {
             finishedSelectingCardsInDeckForStage();
         } else {
@@ -303,7 +308,7 @@ public class ChineseTenPresenter {
               getMyCardsInHand(), selectedCardsInHand);
     view.chooseNextCardInHand(
         ImmutableList.copyOf(selectedCardsInHand), 
-        chineseTenLgoic.subtract(getMyCardsInHand(), selectedCardsInHand));
+        chineseTenLgoic.subtract(getMyCardsInHand(), selectedCardsInHand),getMyCardsInHand().size());
   }
   
   private void chooseNextCardInDeck() {
@@ -371,7 +376,7 @@ public class ChineseTenPresenter {
               chineseTenState.getStage());
       if (selectedCardsInDeck.size() == 1) {
           sendMatchMoveForStageOne();       
-      } else if (selectedCardsInDeck.size() == 0 && selectedCardsInHand.size() == 1) {
+      } else if (selectedCardsInDeck.size() == 0 && selectedCardsInHand.size() < 2) {
           sendNoMatchMoveForStageOne();
       } else {        
            throw new RuntimeException("The operations in stage1 is not right!"
@@ -438,6 +443,20 @@ public class ChineseTenPresenter {
   }
   
   public void sendNoMatchMoveForStageOne() {
+      
+
+      if(chineseTenState.getWhiteOrBlack(myColor.get()).size()==0){
+          
+          List<Operation> operationsToSend = ImmutableList.<Operation>of(
+                  new SetTurn(yourPlayerId),
+                  new Set(STAGE, stage1),
+                  new Set(CLAIM, noMatch));
+          container.sendMakeMove(
+                  chineseTenLgoic.doNoClaimMoveOnStage1(chineseTenState, operationsToSend, playerIds));
+          return;
+          
+      }
+      
       
       List<Integer> myCardIndices = chineseTenState.getWhiteOrBlack(myColor.get());
       Card wToRomove = selectedCardsInHand.get(0);
@@ -533,6 +552,17 @@ public class ChineseTenPresenter {
   }
   
   public void finishedFlipCardsForStage2(int index) {
+      if(index==-1){
+          List<Operation> flipOperation = ImmutableList.<Operation>of(
+                  new SetTurn(yourPlayerId),
+                  new Set(STAGE, stage2),
+                  new Set(CLAIM, "flip"));
+          container.sendMakeMove(chineseTenLgoic.doClaimMoveOnStage2(
+                  chineseTenState, flipOperation, playerIds));
+          return;
+      }
+      
+      
       check(isMyTurn());    
       Integer m = chineseTenState.getMiddle().get(index);
      // List<Integer> myCardIndices = chineseTenState.getMiddle();

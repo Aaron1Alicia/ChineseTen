@@ -260,7 +260,19 @@ public class ChineseTenLgoic {
     List<Operation> doNoClaimMoveOnStage1(ChineseTenState state, List<Operation> lastMove, 
         List<String> playerIds) {
         
+        
+        
         Color turnOfColor = state.getTurn();
+        
+        if(state.getWhiteOrBlack(turnOfColor).size()==0){
+            
+            List<Operation> expectedOperations = ImmutableList.<Operation>of(
+                    new SetTurn(state.getPlayerId(turnOfColor)),
+                    new Set(STAGE, stage1),
+                    new Set(CLAIM, noMatch));
+            return expectedOperations;
+            
+        }
         
         // Get the diff between last state W/B and last move W/B
         List<Integer> lastWorB = state.getWhiteOrBlack(turnOfColor);      
@@ -308,6 +320,17 @@ public class ChineseTenLgoic {
         List<String> playerIds) {
         
         Color turnOfColor = state.getTurn();
+        
+        
+        if (state.getMiddle().size()==0) {
+           
+                List<Operation> flipOperation = ImmutableList.<Operation>of(
+                        new SetTurn(state.getPlayerId(turnOfColor)),
+                        new Set(STAGE, stage2),
+                        new Set(CLAIM, "flip"));
+                return flipOperation;
+  
+        }
         
         // Get the diff between last state W/B and last move W/B
         List<Integer> lastM = state.getMiddle();      

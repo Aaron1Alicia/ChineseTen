@@ -354,7 +354,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   }
 
   @Override
-  public void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards) {
+  public void chooseNextCardInHand(List<Card> selectedCardsInHand, List<Card> remainingCards, int numberOfMyCards) {
 //      try {
 //          Collections.sort(selectedCardsInHand);
 //      }catch(Exception e) {
@@ -368,7 +368,7 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
     enableClicksForHand = true;
     placeImagesForEasyChoose(playerArea, createCardImagesInHand(remainingCards, true));
     placeImages(selectedArea, createCardImagesInHand(selectedCardsInHand, true));
-    claimBtn.setEnabled(!selectedCardsInHand.isEmpty());
+    claimBtn.setEnabled(!selectedCardsInHand.isEmpty() || (numberOfMyCards==0));
   }
   
   
@@ -382,6 +382,12 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   }
   
   public void flipOneCardIfThereisCardsLeftInMiddlePile(List<Integer> cardsInMiddle) {
+      if(cardsInMiddle.size()==0){
+      presenter.finishedFlipCardsForStage2(-1);
+      return;
+      }
+      
+      
       enableClicksForMiddle = true;
       placeImages(middleArea, createMiddleCards(cardsInMiddle.size()));      
   }
