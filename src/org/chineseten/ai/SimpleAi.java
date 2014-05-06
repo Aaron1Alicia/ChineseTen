@@ -23,13 +23,6 @@ public class SimpleAi {
         // TODO Auto-generated constructor stub
     }
     
-//    public List<Operation> getAiOperations() {
-//        
-//        List<Operation> aiOperations = Lists.newArrayList();
-//        return aiOperations;
-//        
-//    }
-    
     public List<Integer> getAiOperationsForStage1() {
         List<Integer> res = Lists.newArrayList();
         List<Integer> myCardIndices = lasState.getWhiteOrBlack(myColor.get());
