@@ -2,9 +2,11 @@ ChineseTen
 ==========
 This is a social two-player card game.
 The game website is here!
-http://4.chineseten10.appspot.com/ChineseTenGame.html
+http://6.chineseten10.appspot.com/ChineseTenGame.html
 If you need to use the emulator, please go to http://smg-gwt-emulator.appspot.com/GwtEmulator.html
-and use http://3.chineseten10.appspot.com/ChineseTenGame.html
+and use http://5.chineseten10.appspot.com/ChineseTenGame.html
+
+About the I18n, Because there is no String in my game, Therefore, there is no I18n.
 
 Rules:
 The object of the play is to capture cards from the layout. A numeral card from Ace (1) to Nine captures another numeral card if their values add up to exactly ten - so for example Ace captures Nine, Nine captures Ace, Three captures Seven, a Five captures another Five, and so on. Tens and picture cards can only capture another card of the same rank: Ten captures Ten, Queen captures Queen, and so on. Suits don't matter for the purpose of capturing.
