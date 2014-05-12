@@ -93,9 +93,13 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   private Audio audio;
   private PickupDragController dragController;
   private SimpleDropController dropController;
+  private ButtonConstants buttonConstants;
 
   public ChineseTenGraphics() {
     CardImages cardImages = GWT.create(CardImages.class);
+    buttonConstants  = GWT.create(ButtonConstants.class);
+    claimBtn.setText(buttonConstants.submitHand());
+    claimBtnOfDeck.setText(buttonConstants.submitDeck());
     this.cardImageSupplier = new CardImageSupplier(cardImages);
     ChineseTenGraphicsUiBinder uiBinder = GWT.create(ChineseTenGraphicsUiBinder.class);
     initWidget(uiBinder.createAndBindUi(this));
