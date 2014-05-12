@@ -30,6 +30,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -98,8 +99,8 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   public ChineseTenGraphics() {
     CardImages cardImages = GWT.create(CardImages.class);
     buttonConstants  = GWT.create(ButtonConstants.class);
-    claimBtn.setText(buttonConstants.submitHand());
-    claimBtnOfDeck.setText(buttonConstants.submitDeck());
+   // Window.alert(buttonConstants.clockwise());
+    claimBtn.setText(buttonConstants.clockwise());
     this.cardImageSupplier = new CardImageSupplier(cardImages);
     ChineseTenGraphicsUiBinder uiBinder = GWT.create(ChineseTenGraphicsUiBinder.class);
     initWidget(uiBinder.createAndBindUi(this));

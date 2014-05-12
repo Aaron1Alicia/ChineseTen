@@ -11,8 +11,8 @@
       <g:HorizontalPanel ui:field="playerArea"/>
     </g:HorizontalPanel>
     <g:HorizontalPanel height="60px">    
-      <g:Button ui:field="claimBtn"/> <!-- text="Finish selecting cards in hands" -->
-      <g:Button ui:field="claimBtnOfDeck" /> <!-- text="Finish selecting cards in deck" -->
+      <g:Button ui:field="claimBtn"></g:Button>  <!-- text="Finish selecting cards in hands" -->
+      <g:Button ui:field="claimBtnOfDeck" ></g:Button><!-- text="Finish selecting cards in deck" -->
     </g:HorizontalPanel>
     <g:HorizontalPanel width="120" height="80px" ui:field="selectedArea"/>
    <!--  <g:AbsolutePanel ui:field="DND">
