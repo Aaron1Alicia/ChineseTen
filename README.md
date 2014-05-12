@@ -4,7 +4,7 @@ This is a social two-player card game.
 The game website is here!
 http://6.chineseten10.appspot.com/ChineseTenGame.html
 If you need to use the emulator, please go to http://smg-gwt-emulator.appspot.com/GwtEmulator.html
-and use http://5.chineseten10.appspot.com/ChineseTenGame.html
+and use http://8.chineseten10.appspot.com/ChineseTenGame.html
 
 About the I18n, Because there is no String in my game, Therefore, there is no I18n.
 
