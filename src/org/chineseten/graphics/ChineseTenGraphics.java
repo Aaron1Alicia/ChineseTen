@@ -99,11 +99,17 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
   public ChineseTenGraphics() {
     CardImages cardImages = GWT.create(CardImages.class);
     buttonConstants  = GWT.create(ButtonConstants.class);
+    String aString = buttonConstants.clockwise();
+    System.out.println(aString);
+    
+
    // Window.alert(buttonConstants.clockwise());
-    claimBtn.setText(buttonConstants.clockwise());
+    
     this.cardImageSupplier = new CardImageSupplier(cardImages);
     ChineseTenGraphicsUiBinder uiBinder = GWT.create(ChineseTenGraphicsUiBinder.class);
     initWidget(uiBinder.createAndBindUi(this));
+    claimBtn.setText(aString);
+    claimBtnOfDeck.setText(buttonConstants.antiClockwise());
     GameSounds gameSounds = GWT.create(GameSounds.class);
     if (Audio.isSupported()) {
                   audio = Audio.createIfSupported();
