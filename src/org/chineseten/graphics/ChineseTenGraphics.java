@@ -202,22 +202,22 @@ public class ChineseTenGraphics extends Composite implements ChineseTenPresenter
         if (withClick) {
             image.addClickHandler(new AnimationHandler(image, imgFinal));
             fadeAnimation = new FadeAnimation(image, audio);
-//            image.addDomHandler(new MouseOverHandler() {
-//                
-//                @Override
-//                public void onMouseOver(MouseOverEvent event) {
-//                 fadeAnimation.fade(1500, 1.0);
-//                }
-//               }, MouseOverEvent.getType());
-            image.addTouchStartHandler(new TouchStartHandler() {
-
+            image.addDomHandler(new MouseOverHandler() {
+                
                 @Override
-                public void onTouchStart(TouchStartEvent event) {
-                    // TODO Auto-generated method stub
-                    fadeAnimation.fade(1500, 1.0);         
+                public void onMouseOver(MouseOverEvent event) {
+                 fadeAnimation.fade(1500, 1.0);
                 }
-  
-            });
+               }, MouseOverEvent.getType());
+//            image.addTouchStartHandler(new TouchStartHandler() {
+//
+//                @Override
+//                public void onTouchStart(TouchStartEvent event) {
+//                    // TODO Auto-generated method stub
+//                    fadeAnimation.fade(1500, 1.0);         
+//                }
+//  
+//            });
         }
         res.add(image);
       }
